@@ -23,6 +23,63 @@ func GetFieldName(s interface{}, name string) string {
 	return tag
 }
 
+// ActivityMeasureQueryParam acts as the config parameter for activity measurement queries.
+// All options feilds can be set to null but at least one of the date fields need to be
+// specified or the API will fail. Additionally there is no ParseResponse option as
+// there is no need to because the activities response doesn't need further parsing.
+type ActivityMeasureQueryParam struct {
+	UserId       int        `json:"userid"`
+	Date         *time.Time `json:"date"`
+	StartDateYMD *time.Time `json:"startdateymd"`
+	EndDateYMD   *time.Time `json:"enddateymd"`
+	LasteUpdate  *int       `json:"lastupdate"`
+	Offset       *int       `json:"offset"`
+}
+
+// RawActivitiesMeasureResponse contains the unmarshalled response from the api.
+// If the client has been set to include raw respeonse the RawResponse byte slice
+// will be populated with raw bytes returned by the API.
+type RawActivitiesMeasuresResponse struct {
+	Status      int                                `json:"status"`
+	Body        *RawActivitiesMeasuresResponseBody `json:"body"`
+	RawResponse []byte
+}
+
+// RawActivitiesMeasuresResponseBody contains the response body as provided by the
+// api. The Nokia Health API includes single values responses directly in the
+// body. As such they are all pointers. You may check SingleValue to determine
+// if a single value was provided.
+type RawActivitiesMeasuresResponseBody struct {
+	ParsedDate  *time.Time `json:"parseddate`
+	Date        *string    `json:"date"`
+	Steps       *float64   `json:"steps"`
+	Distance    *float64   `json:"distance"`
+	Calories    *float64   `json:"calories"`
+	Elevation   *float64   `json:"elevation"`
+	Soft        *int       `json:"soft"`
+	Moderate    *int       `json:"moderate"`
+	Intense     *int       `json:"intense"`
+	TimeZone    *string    `json:"timezone"`
+	Activities  []Activity `json:"activity"`
+	More        bool       `json:"more"`
+	Offset      int        `json:"offset"`
+	SingleValue bool       `json:"singleValue"`
+}
+
+// Activity represents an activity as recorded by Nokia Health.
+type Activity struct {
+	ParsedDate *time.Time `json:"parseddate`
+	Date       string     `json:"date"`
+	Steps      float64    `json:"steps"`
+	Distance   float64    `json:"distance"`
+	Calories   float64    `json:"calories"`
+	Elevation  float64    `json:"elevation"`
+	Soft       int        `json:"soft"`
+	Moderate   int        `json:"moderate"`
+	Intense    int        `json:"intense"`
+	TimeZone   string     `json:"timezone"`
+}
+
 // BodyMeasuresQueryParams acts as the config parameter for body measurement queries.
 // All optional field can be set to null.
 // The ParsedResponse can be set to true and the request will automatically parse
@@ -41,7 +98,7 @@ type BodyMeasuresQueryParams struct {
 	ParseResponse bool
 }
 
-// RawBodyMeasuresResponse contains the un parsed body measurement query response.
+// RawBodyMeasuresResponse contains the unmarshalled response from the api.
 // If the client has been set to include raw respeonse the RawResponse byte slice
 // will be populated with raw bytes returned by the API.
 type RawBodyMeasuresResponse struct {
@@ -51,29 +108,29 @@ type RawBodyMeasuresResponse struct {
 	ParsedResponse *BodyMeasures
 }
 
-// RawBodyMeasureResponseBody represents the body portion of the measure response.
+// RawBodyMeasureResponseBody represents the body portion of the body measure response.
 // The body portion is not required and thus this may not be found in the response
 // object.
 type RawBodyMeasureResponseBody struct {
-	Updatetime  int                    `json:"updatetime"`
-	More        int                    `json:"more"`
-	Timezone    string                 `json:"timezone"`
-	MeasureGrps []MeasureGroupResponse `json:"measuregrps"`
+	Updatetime  int                        `json:"updatetime"`
+	More        int                        `json:"more"`
+	Timezone    string                     `json:"timezone"`
+	MeasureGrps []BodyMeasureGroupResponse `json:"measuregrps"`
 }
 
-// MeasureGroupResponse is a single measurment group as found in the resposne.
+// BodyMeasureGroupResponse is a single body measurment group as found in the resposne.
 // Each group has a set of measures that can then be parsed manually or via the
 // Parse method on BodyMeasuresQueryParams.
-type MeasureGroupResponse struct {
-	GrpID    int                `json:"grpid"`
-	Attrib   int                `json:"attrib"`
-	Date     int                `json:"date"`
-	Category int                `json:"category"`
-	Measures []MeasuresResponse `json:"measures"`
+type BodyMeasureGroupResponse struct {
+	GrpID    int                    `json:"grpid"`
+	Attrib   int                    `json:"attrib"`
+	Date     int                    `json:"date"`
+	Category int                    `json:"category"`
+	Measures []BodyMeasuresResponse `json:"measures"`
 }
 
-// MeasureResponse is a single measure found in the response.
-type MeasuresResponse struct {
+// MeasureResponse is a single body measure found in the response.
+type BodyMeasuresResponse struct {
 	Value int               `json:"value"`
 	Type  meastype.MeasType `json:"type"`
 	Unit  int               `json:"unit"`
