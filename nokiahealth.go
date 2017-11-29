@@ -283,10 +283,10 @@ func (u User) GetWorkouts(params *WorkoutsQueryParam) (RawWorkoutResponse, error
 	// Parse dates if possible
 	if workoutResponse.Body != nil {
 		for i, _ := range workoutResponse.Body.Series {
-			d := time.Unix(int64(workoutResponse.Body.Series[i].StartDate), 0)
+			d := time.Unix(workoutResponse.Body.Series[i].StartDate, 0)
 			workoutResponse.Body.Series[i].StartDateParsed = &d
 
-			d = time.Unix(int64(workoutResponse.Body.Series[i].EndDate), 0)
+			d = time.Unix(workoutResponse.Body.Series[i].EndDate, 0)
 			workoutResponse.Body.Series[i].EndDateParsed = &d
 
 			location, err := time.LoadLocation(workoutResponse.Body.Series[i].TimeZone)
@@ -420,6 +420,16 @@ func (u User) GetSleepMeasure(params *SleepMeasuresQueryParam) (RawSleepMeasures
 	err = json.Unmarshal(body, &sleepMeasureRepsonse)
 	if err != nil {
 		return sleepMeasureRepsonse, err
+	}
+
+	if sleepMeasureRepsonse.Body != nil {
+		for i, _ := range sleepMeasureRepsonse.Body.Series {
+			t := time.Unix(sleepMeasureRepsonse.Body.Series[i].StartDate, 0)
+			sleepMeasureRepsonse.Body.Series[i].StartDateParsed = &t
+
+			t = time.Unix(sleepMeasureRepsonse.Body.Series[i].EndDate, 0)
+			sleepMeasureRepsonse.Body.Series[i].EndDateParsed = &t
+		}
 	}
 
 	return sleepMeasureRepsonse, nil
