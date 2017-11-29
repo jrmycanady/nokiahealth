@@ -128,10 +128,10 @@ func (u User) GetActivityMeasures(params *ActivityMeasureQueryParam) (RawActivit
 			v.Add(GetFieldName(*params, "Date"), params.Date.Format("2006-01-02"))
 		}
 		if params.StartDateYMD != nil {
-			v.Add(GetFieldName(*params, "StartDateYMD"), params.Date.Format("2006-01-02"))
+			v.Add(GetFieldName(*params, "StartDateYMD"), params.StartDateYMD.Format("2006-01-02"))
 		}
 		if params.EndDateYMD != nil {
-			v.Add(GetFieldName(*params, "EndDateYMD"), params.Date.Format("2006-01-02"))
+			v.Add(GetFieldName(*params, "EndDateYMD"), params.EndDateYMD.Format("2006-01-02"))
 		}
 		if params.LasteUpdate != nil {
 			v.Add(GetFieldName(*params, "LasteUpdate"), strconv.FormatInt(params.LasteUpdate.Unix(), 10))
@@ -196,29 +196,74 @@ func (u User) GetActivityMeasures(params *ActivityMeasureQueryParam) (RawActivit
 	return activityMeasureResponse, nil
 }
 
-func (u User) GetWorkouts() {
+// GetWorkouts retrieves all the workouts for a given date range based on the values
+// provided by params.
+func (u User) GetWorkouts(params *WorkoutsQueryParam) (RawWorkoutResponse, error) {
+
+	workoutResponse := RawWorkoutResponse{}
+
 	httpClient := u.Client.OAuthConfig.Client(oauth1.NoContext, u.AccessToken)
 
 	v := url.Values{}
 	v.Add("userid", strconv.Itoa(u.UserID))
 	v.Add("action", "getworkouts")
 
+	if params != nil {
+		if params.StartDateYMD != nil {
+			v.Add(GetFieldName(*params, "StartDateYMD"), params.StartDateYMD.Format("2006-01-02"))
+		}
+		if params.EndDateYMD != nil {
+			v.Add(GetFieldName(*params, "EndDateYMD"), params.EndDateYMD.Format("2006-01-02"))
+		}
+	}
+
 	path := fmt.Sprintf("http://api.health.nokia.com/v2/measure?%s", v.Encode())
 
 	resp, err := httpClient.Get(path)
 	if err != nil {
-		// return bodyMeasureResponse, err
-		log.Fatal(err)
+		return workoutResponse, nil
 	}
 
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
-		// return bodyMeasureResponse, err
+		return workoutResponse, nil
+	}
+	if u.Client.SaveRawResponse {
+		workoutResponse.RawResponse = body
 	}
 
-	log.Println(string(body))
+	err = json.Unmarshal(body, &workoutResponse)
+	if err != nil {
+		return workoutResponse, err
+	}
+
+	// Parse dates if possible
+	if workoutResponse.Body != nil {
+		for i, _ := range workoutResponse.Body.Series {
+			d := time.Unix(int64(workoutResponse.Body.Series[i].StartDate), 0)
+			workoutResponse.Body.Series[i].StartDateParsed = &d
+
+			d = time.Unix(int64(workoutResponse.Body.Series[i].EndDate), 0)
+			workoutResponse.Body.Series[i].EndDateParsed = &d
+
+			location, err := time.LoadLocation(workoutResponse.Body.Series[i].TimeZone)
+			if err != nil {
+				return workoutResponse, err
+			}
+
+			t, err := time.Parse("2006-01-02", workoutResponse.Body.Series[i].Date)
+			if err != nil {
+				return workoutResponse, err
+			}
+
+			t = t.In(location)
+
+			workoutResponse.Body.Series[i].DateParsed = &t
+		}
+	}
+
+	return workoutResponse, nil
 
 }
 

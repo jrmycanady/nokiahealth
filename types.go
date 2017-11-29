@@ -8,6 +8,8 @@ import (
 	"github.com/jrmycanady/nokiahealth/enum/meastype"
 
 	"github.com/jrmycanady/nokiahealth/enum/devtype"
+
+	"github.com/jrmycanady/nokiahealth/enum/workouttype"
 )
 
 // GetFieldNames returns the json filed name for the field if one is found. If
@@ -21,6 +23,45 @@ func GetFieldName(s interface{}, name string) string {
 		tag = f.Tag.Get("json")
 	}
 	return tag
+}
+
+// WorkoutsQueryParam acts as the config parameter for workout retrieval requests.
+type WorkoutsQueryParam struct {
+	UserId       int        `json:"userid"`
+	StartDateYMD *time.Time `json:"startdateymd"`
+	EndDateYMD   *time.Time `json:"enddateymd"`
+}
+
+// RawWorkoutResponse represents the unmarshelled api response for workouts.
+type RawWorkoutResponse struct {
+	Status      int                     `json:"status"`
+	Body        *RawWorkoutResponseBody `json:"body"`
+	RawResponse []byte
+}
+
+// RawWorkoutResponseBody represents the unmarshelled body of the workout api resposne.
+type RawWorkoutResponseBody struct {
+	Series []Workout `json:"series"`
+}
+
+// Workout contains each workout entry as returned by the API. The raw dates are provided
+// but fully parsed timeTime structs can be accessed via the same name as the field
+// but with Parsed added. i.e. StartDate => StartDateParsed
+type Workout struct {
+	ID              int                      `json:"id"`
+	UserID          int                      `json:"userid"`
+	Category        *workouttype.WorkoutType `json:"category"`
+	StartDate       int                      `json:"startdate"`
+	EndDate         int                      `json:"enddate"`
+	Model           int                      `json:"model"`
+	Attrib          int                      `json:"attrib"`
+	Date            string                   `json:"date"`
+	TimeZone        string                   `json:"timezone"`
+	Modified        int                      `json:"modified"`
+	Data            map[string]float64       `json:"data"`
+	StartDateParsed *time.Time               `json:"startdateparsed"`
+	EndDateParsed   *time.Time               `json:"enddateparsed"`
+	DateParsed      *time.Time               `json:"dateparsed"`
 }
 
 // ActivityMeasureQueryParam acts as the config parameter for activity measurement queries.
