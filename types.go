@@ -32,7 +32,7 @@ type ActivityMeasureQueryParam struct {
 	Date         *time.Time `json:"date"`
 	StartDateYMD *time.Time `json:"startdateymd"`
 	EndDateYMD   *time.Time `json:"enddateymd"`
-	LasteUpdate  *int       `json:"lastupdate"`
+	LasteUpdate  *time.Time `json:"lastupdate"`
 	Offset       *int       `json:"offset"`
 }
 

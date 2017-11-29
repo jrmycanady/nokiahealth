@@ -122,8 +122,21 @@ func (u User) GetActivityMeasures(params *ActivityMeasureQueryParam) (RawActivit
 	v := url.Values{}
 	v.Add("userid", strconv.Itoa(u.UserID))
 	v.Add("action", "getactivity")
-	log.Println(time.Now().Format("2006-01-02"))
-	v.Add("date", time.Now().Format("2006-01-02"))
+
+	if params != nil {
+		if params.Date != nil {
+			v.Add(GetFieldName(*params, "Date"), params.Date.Format("2006-01-02"))
+		}
+		if params.StartDateYMD != nil {
+			v.Add(GetFieldName(*params, "StartDateYMD"), params.Date.Format("2006-01-02"))
+		}
+		if params.EndDateYMD != nil {
+			v.Add(GetFieldName(*params, "EndDateYMD"), params.Date.Format("2006-01-02"))
+		}
+		if params.LasteUpdate != nil {
+			v.Add(GetFieldName(*params, "LasteUpdate"), strconv.FormatInt(params.LasteUpdate.Unix(), 10))
+		}
+	}
 
 	path := fmt.Sprintf("http://api.health.nokia.com/v2/measure?%s", v.Encode())
 
