@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/url"
 	"strconv"
+	"time"
 
 	"github.com/jrmycanady/oauth1"
 )
@@ -107,6 +109,78 @@ func (ar AccessRequest) GenerateUser(verifier string, userID int) (User, error) 
 	u.AccessToken = oauth1.NewToken(u.AccessTokenStr, u.AccessSecretStr)
 
 	return u, nil
+}
+
+// GetActivityMeasures retrieves the activity measurements as specified by the config
+// provided.
+func (u User) GetActivityMeasures(params *ActivityMeasureQueryParam) (RawActivitiesMeasuresResponse, error) {
+	activityMeasureResponse := RawActivitiesMeasuresResponse{}
+
+	httpClient := u.Client.OAuthConfig.Client(oauth1.NoContext, u.AccessToken)
+
+	// Build query params
+	v := url.Values{}
+	v.Add("userid", strconv.Itoa(u.UserID))
+	v.Add("action", "getactivity")
+	log.Println(time.Now().Format("2006-01-02"))
+	v.Add("date", time.Now().Format("2006-01-02"))
+
+	path := fmt.Sprintf("http://api.health.nokia.com/v2/measure?%s", v.Encode())
+
+	log.Println(path)
+	resp, err := httpClient.Get(path)
+	if err != nil {
+		return activityMeasureResponse, err
+	}
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return activityMeasureResponse, err
+	}
+	if u.Client.SaveRawResponse {
+		activityMeasureResponse.RawResponse = body
+	}
+
+	err = json.Unmarshal(body, &activityMeasureResponse)
+	if err != nil {
+		return activityMeasureResponse, err
+	}
+
+	// Parse date time if possible.
+	if activityMeasureResponse.Body.Date != nil && activityMeasureResponse.Body.TimeZone != nil {
+		location, err := time.LoadLocation(*activityMeasureResponse.Body.TimeZone)
+		if err != nil {
+			return activityMeasureResponse, err
+		}
+
+		t, err := time.Parse("2006-01-02", *activityMeasureResponse.Body.Date)
+		if err != nil {
+			return activityMeasureResponse, err
+		}
+
+		t = t.In(location)
+		activityMeasureResponse.Body.ParsedDate = &t
+
+		activityMeasureResponse.Body.SingleValue = true
+	}
+
+	for aID, _ := range activityMeasureResponse.Body.Activities {
+		location, err := time.LoadLocation(activityMeasureResponse.Body.Activities[aID].TimeZone)
+		if err != nil {
+			return activityMeasureResponse, err
+		}
+
+		t, err := time.Parse("2006-01-02", activityMeasureResponse.Body.Activities[aID].Date)
+		if err != nil {
+			return activityMeasureResponse, err
+		}
+
+		t = t.In(location)
+		activityMeasureResponse.Body.Activities[aID].ParsedDate = &t
+	}
+
+	return activityMeasureResponse, nil
 }
 
 // GetBodyMeasure retrieves the measurements as specified by the config

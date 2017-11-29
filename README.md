@@ -2,6 +2,9 @@
 
 This is a go library that allows easy access to the Nokia Health API (https://developer.health.nokia.com/api/doc) 
 
+**NOTICE** - Looking for users with data from various withings devices. Currently only testing against an account with a withings scale. 
+
+
 ## Oauth Notes
 
 The Nokia Health OAuth implemenation required some modifcations resulting in a fork of dghubble/oauth1. This project relies on the fork located at jrmycanady/oauth1. 
@@ -9,6 +12,8 @@ The Nokia Health OAuth implemenation required some modifcations resulting in a f
 ## Current Working Features
 * User Access Requests
 * Retrieving user body measurements
+
+
 
 ## Installation
   go get github.com/jrmycanady/nokiahealth
