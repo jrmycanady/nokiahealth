@@ -196,6 +196,32 @@ func (u User) GetActivityMeasures(params *ActivityMeasureQueryParam) (RawActivit
 	return activityMeasureResponse, nil
 }
 
+func (u User) GetWorkouts() {
+	httpClient := u.Client.OAuthConfig.Client(oauth1.NoContext, u.AccessToken)
+
+	v := url.Values{}
+	v.Add("userid", strconv.Itoa(u.UserID))
+	v.Add("action", "getworkouts")
+
+	path := fmt.Sprintf("http://api.health.nokia.com/v2/measure?%s", v.Encode())
+
+	resp, err := httpClient.Get(path)
+	if err != nil {
+		// return bodyMeasureResponse, err
+		log.Fatal(err)
+	}
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(err)
+		// return bodyMeasureResponse, err
+	}
+
+	log.Println(string(body))
+
+}
+
 // GetBodyMeasure retrieves the measurements as specified by the config
 // provided.
 func (u User) GetBodyMeasure(params *BodyMeasuresQueryParams) (RawBodyMeasuresResponse, error) {
