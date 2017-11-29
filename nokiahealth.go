@@ -132,8 +132,6 @@ func (u User) GetIntradayActivities(params *IntradayActivityQueryParam) (RawIntr
 
 	path := fmt.Sprintf("http://api.health.nokia.com/v2/measure?%s", v.Encode())
 
-	log.Println(path)
-
 	resp, err := httpClient.Get(path)
 	if err != nil {
 		return intraDayActivityResponse, err
@@ -311,7 +309,7 @@ func (u User) GetWorkouts(params *WorkoutsQueryParam) (RawWorkoutResponse, error
 
 }
 
-// GetBodyMeasure retrieves the measurements as specified by the config
+// GetBodyMeasure retrieves the body measurements as specified by the config
 // provided.
 func (u User) GetBodyMeasure(params *BodyMeasuresQueryParams) (RawBodyMeasuresResponse, error) {
 	bodyMeasureResponse := RawBodyMeasuresResponse{}
@@ -377,6 +375,54 @@ func (u User) GetBodyMeasure(params *BodyMeasuresQueryParams) (RawBodyMeasuresRe
 
 	return bodyMeasureResponse, nil
 
+}
+
+// GetSleepMeasure retrieves the sleep measurements as specified by the config
+// provided. Start and end dates are requires so if the param is not provided
+// one is generated for the past 24 hour timeframe.
+func (u User) GetSleepMeasure(params *SleepMeasuresQueryParam) (RawSleepMeasuresResponse, error) {
+	sleepMeasureRepsonse := RawSleepMeasuresResponse{}
+
+	httpClient := u.Client.OAuthConfig.Client(oauth1.NoContext, u.AccessToken)
+
+	// Build query params
+	v := url.Values{}
+	v.Add("userid", strconv.Itoa(u.UserID))
+	v.Add("action", "get")
+
+	// Params are required for this api call. To be consident we handle empty params and build
+	// one with sensible defaults if needed.
+	if params == nil {
+		params = &SleepMeasuresQueryParam{}
+		params.StartDate = time.Now()
+		params.EndDate = time.Now().AddDate(0, 0, -1)
+	}
+
+	v.Add(GetFieldName(*params, "StartDate"), strconv.FormatInt(params.StartDate.Unix(), 10))
+	v.Add(GetFieldName(*params, "EndDate"), strconv.FormatInt(params.EndDate.Unix(), 10))
+
+	path := fmt.Sprintf("http://api.health.nokia.com/v2/sleep?%s", v.Encode())
+	log.Println(path)
+	resp, err := httpClient.Get(path)
+	if err != nil {
+		return sleepMeasureRepsonse, err
+	}
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return sleepMeasureRepsonse, err
+	}
+	if u.Client.SaveRawResponse {
+		sleepMeasureRepsonse.RawResponse = body
+	}
+
+	err = json.Unmarshal(body, &sleepMeasureRepsonse)
+	if err != nil {
+		return sleepMeasureRepsonse, err
+	}
+
+	return sleepMeasureRepsonse, nil
 }
 
 // GenerateUser creates a new user object based on the values provided for the

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/jrmycanady/nokiahealth/enum/meastype"
+	"github.com/jrmycanady/nokiahealth/enum/sleepstate"
 
 	"github.com/jrmycanady/nokiahealth/enum/devtype"
 
@@ -25,6 +26,32 @@ func GetFieldName(s interface{}, name string) string {
 	return tag
 }
 
+// SleepMeasuresQueryParam acts as the config parameter for sleep measures requests.
+type SleepMeasuresQueryParam struct {
+	UserId    int       `json:"userid"`
+	StartDate time.Time `json:"startdate"`
+	EndDate   time.Time `json:"enddate"`
+}
+
+type RawSleepMeasuresResponse struct {
+	Status      int                           `json:"status"`
+	Body        *RawSleepMeasuresResponseBody `json:"body"`
+	RawResponse []byte
+}
+
+type RawSleepMeasuresResponseBody struct {
+	Series []SleepMeasure `json:"series"`
+	Model  int            `json:"model"`
+}
+
+type SleepMeasure struct {
+	StartDate       int64                 `json:"startdate"`
+	EndDate         int64                 `json:"enddate"`
+	State           sleepstate.SleepState `json:"state"`
+	StartDateParsed *time.Time            `json:"startdateparsed"`
+	EndDateParsed   *time.Time            `'json:"enddateparsed"`
+}
+
 // IntradayActivityQueryParam acts as the config parameter for intraday activity retrieval requests.
 type IntradayActivityQueryParam struct {
 	UserId    int        `json:"userid"`
@@ -32,16 +59,21 @@ type IntradayActivityQueryParam struct {
 	EndDate   *time.Time `json:"enddate"`
 }
 
+// RawIntradayActivityResponse represents the unmarshelled api response for intraday activities.
 type RawIntradayActivityResponse struct {
 	Status      int                              `json:"status"`
 	Body        *RawIntradayActivityResponseBody `json:"body"`
 	RawResponse []byte
 }
 
+// RawIntradayActivityResponseBody represents the unmarshelled api response body for intraday activities.
 type RawIntradayActivityResponseBody struct {
 	Series map[int64]IntraDayActivity `json:"series"`
 }
 
+// IntraDayActivity represents an intra day activity as returned by the API.
+// Their is likey work to be done here as the documentation does not provide
+// musch information reegarding what paramters it should contain.
 type IntraDayActivity struct {
 	Calories  *float64 `json:"calories"`
 	Distance  *float64 `json:"distance"`
