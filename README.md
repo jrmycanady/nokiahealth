@@ -1,6 +1,6 @@
 # Go library for the Nokia Health API
 
-This is a go library that allows easy access to the Nokia Health API (https://developer.health.nokia.com/api/doc) 
+This is a go library that allows easy access to the Nokia Health API (https://developer.health.nokia.com/api/doc). More detailed documentation can be found in the godocs (https://godoc.org/github.com/jrmycanady/nokiahealth).
 
 **NOTICE** - Looking for users with data from various withings devices. Currently only testing against an account with a withings scale. 
 
