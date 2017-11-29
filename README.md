@@ -63,7 +63,7 @@ m, err := u.GetBodyMeasures(nil)
 
 ## Making Requests
 Requests are performed from methods on the User. Each request accepts a specific query struct with the details for the request. For example: 
-```
+```go
 p := nokiahealth.BodyMeasuresQueryParams{}
 
 t := time.Now().AddDate(0, 0, -14)
@@ -74,7 +74,7 @@ m, err := u.GetBodyMeasure(&p)
 
 The results is either an error or the unmarshled json response from the API. You can work with the response, but more likely you will want to perform the ParseData method which generates a user friendly form of the data. For example it's bucketed into the type of measurement and all values are converted with the proper units.
 
-```
+```go
 measures := m.ParseData()
 ```
 
