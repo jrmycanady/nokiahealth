@@ -12,7 +12,8 @@ The Nokia Health OAuth implemenation required some modifcations resulting in a f
 ## Current Working Features
 * User Access Requests
 * Retrieving user body measurements
-
+* Retrieve activity measurments
+* Retrieve workouts
 
 
 ## Installation
