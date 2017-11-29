@@ -14,7 +14,7 @@ The Nokia Health OAuth implemenation required some modifcations resulting in a f
 * Retrieving user body measurements
 * Retrieve activity measurments
 * Retrieve workouts
-
+* Retreive intraday activities is implemented but not tested. Apparently requires additional authorization wich I don't have yet.
 
 ## Installation
   go get github.com/jrmycanady/nokiahealth

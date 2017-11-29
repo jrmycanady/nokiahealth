@@ -25,6 +25,32 @@ func GetFieldName(s interface{}, name string) string {
 	return tag
 }
 
+// IntradayActivityQueryParam acts as the config parameter for intraday activity retrieval requests.
+type IntradayActivityQueryParam struct {
+	UserId    int        `json:"userid"`
+	StartDate *time.Time `json:"startdate"`
+	EndDate   *time.Time `json:"enddate"`
+}
+
+type RawIntradayActivityResponse struct {
+	Status      int                              `json:"status"`
+	Body        *RawIntradayActivityResponseBody `json:"body"`
+	RawResponse []byte
+}
+
+type RawIntradayActivityResponseBody struct {
+	Series map[int64]IntraDayActivity `json:"series"`
+}
+
+type IntraDayActivity struct {
+	Calories  *float64 `json:"calories"`
+	Distance  *float64 `json:"distance"`
+	Duration  *int     `json:"duration"`
+	Elevation *float64 `json:"elevation"`
+	Steps     *int     `json:"steps"`
+	PoolLap   *int     `json:"pool_lap"`
+}
+
 // WorkoutsQueryParam acts as the config parameter for workout retrieval requests.
 type WorkoutsQueryParam struct {
 	UserId       int        `json:"userid"`
@@ -51,8 +77,8 @@ type Workout struct {
 	ID              int                      `json:"id"`
 	UserID          int                      `json:"userid"`
 	Category        *workouttype.WorkoutType `json:"category"`
-	StartDate       int                      `json:"startdate"`
-	EndDate         int                      `json:"enddate"`
+	StartDate       int64                    `json:"startdate"`
+	EndDate         int64                    `json:"enddate"`
 	Model           int                      `json:"model"`
 	Attrib          int                      `json:"attrib"`
 	Date            string                   `json:"date"`
@@ -153,7 +179,7 @@ type RawBodyMeasuresResponse struct {
 // The body portion is not required and thus this may not be found in the response
 // object.
 type RawBodyMeasureResponseBody struct {
-	Updatetime  int                        `json:"updatetime"`
+	Updatetime  int64                      `json:"updatetime"`
 	More        int                        `json:"more"`
 	Timezone    string                     `json:"timezone"`
 	MeasureGrps []BodyMeasureGroupResponse `json:"measuregrps"`
@@ -165,7 +191,7 @@ type RawBodyMeasureResponseBody struct {
 type BodyMeasureGroupResponse struct {
 	GrpID    int                    `json:"grpid"`
 	Attrib   int                    `json:"attrib"`
-	Date     int                    `json:"date"`
+	Date     int64                  `json:"date"`
 	Category int                    `json:"category"`
 	Measures []BodyMeasuresResponse `json:"measures"`
 }

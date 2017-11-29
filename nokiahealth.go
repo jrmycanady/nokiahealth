@@ -111,6 +111,51 @@ func (ar AccessRequest) GenerateUser(verifier string, userID int) (User, error) 
 	return u, nil
 }
 
+func (u User) GetIntradayActivities(params *IntradayActivityQueryParam) (RawIntradayActivityResponse, error) {
+	intraDayActivityResponse := RawIntradayActivityResponse{}
+
+	httpClient := u.Client.OAuthConfig.Client(oauth1.NoContext, u.AccessToken)
+
+	// Build query params
+	v := url.Values{}
+	v.Add("userid", strconv.Itoa(u.UserID))
+	v.Add("action", "getintradayactivity")
+
+	if params != nil {
+		if params.StartDate != nil {
+			v.Add(GetFieldName(*params, "StartDate"), strconv.FormatInt(params.StartDate.Unix(), 10))
+		}
+		if params.EndDate != nil {
+			v.Add(GetFieldName(*params, "EndDate"), strconv.FormatInt(params.EndDate.Unix(), 10))
+		}
+	}
+
+	path := fmt.Sprintf("http://api.health.nokia.com/v2/measure?%s", v.Encode())
+
+	log.Println(path)
+
+	resp, err := httpClient.Get(path)
+	if err != nil {
+		return intraDayActivityResponse, err
+	}
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return intraDayActivityResponse, err
+	}
+	if u.Client.SaveRawResponse {
+		intraDayActivityResponse.RawResponse = body
+	}
+
+	err = json.Unmarshal(body, &intraDayActivityResponse)
+	if err != nil {
+		return intraDayActivityResponse, err
+	}
+
+	return intraDayActivityResponse, nil
+}
+
 // GetActivityMeasures retrieves the activity measurements as specified by the config
 // provided.
 func (u User) GetActivityMeasures(params *ActivityMeasureQueryParam) (RawActivitiesMeasuresResponse, error) {
@@ -140,7 +185,6 @@ func (u User) GetActivityMeasures(params *ActivityMeasureQueryParam) (RawActivit
 
 	path := fmt.Sprintf("http://api.health.nokia.com/v2/measure?%s", v.Encode())
 
-	log.Println(path)
 	resp, err := httpClient.Get(path)
 	if err != nil {
 		return activityMeasureResponse, err
