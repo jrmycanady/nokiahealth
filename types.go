@@ -26,6 +26,18 @@ func GetFieldName(s interface{}, name string) string {
 	return tag
 }
 
+// SleepSummaryQueryParam provides the query parameters for requests of sleep
+// summary data. A date must be specified either with the StartDateYMD/EndDateYMD pair or
+// setting the LastUpdate.
+// The LastUpdate allow setting to zero for the first call so a time.Time struct
+// is not accepted but rather the raw UNIX time.
+type SleepSummaryQueryParam struct {
+	StartDateYMD *time.Time `json:"startdateymd"`
+	EndDateYMD   *time.Time `json:"enddateymd"`
+	LastUpdate   *int64     `json:"lastupdate"`
+	Offset       *int       `json:"offset"`
+}
+
 // SleepMeasuresQueryParam acts as the config parameter for sleep measures requests.
 type SleepMeasuresQueryParam struct {
 	UserId    int       `json:"userid"`
@@ -33,17 +45,60 @@ type SleepMeasuresQueryParam struct {
 	EndDate   time.Time `json:"enddate"`
 }
 
+// RawSleepSummaryResponse represents the unmarshelled api response for sleep summary.
+type RawSleepSummaryResponse struct {
+	Status      int                  `json:"status"`
+	Body        *RawSleepSummaryBody `json:"body"`
+	RawResponse []byte
+}
+
+// RawSleepSummaryBody represents the unmarshelled api response for the sleep summary body.
+type RawSleepSummaryBody struct {
+	Series []SleepSummary `json:"series"`
+	More   bool           `json:"more"`
+}
+
+// SleepSummary is a summary of one sleep entry.
+type SleepSummary struct {
+	ID              int64              `json:"id"`
+	StartDate       int64              `json:"startdate"`
+	EndDate         int64              `json:"enddate"`
+	Date            string             `json:"date"`
+	TimeZone        string             `json:"timezone"`
+	Model           int                `json:"model"`
+	Data            []SleepSummaryData `json:"data"`
+	Modified        int64              `json:"modified"`
+	StartDateParsed *time.Time         `json:"startdateparsed"`
+	EndDateParsed   *time.Time         `json:"enddateparsed"`
+	DateParsed      *time.Time         `json:"dateparsed"`
+}
+
+// SleepSummaryData contains the summary data for the sleep summary. Not all fields are required
+// so some are pointers and can be nil.
+type SleepSummaryData struct {
+	WakeUpDuration     int  `json:"wakeupduration"`
+	LightSleepDuration int  `json:"lightsleepduration"`
+	DeepSleepDuration  int  `json:"deepsleepduration"`
+	REMSleepDuration   *int `json:"remsleepduration"`
+	WakeUpCount        int  `json:"wakeupcount"`
+	DurationToSleep    int  `json:"durationtosleep"`
+	DurationToWakeUp   *int `json:"durationtowakeup`
+}
+
+// RawSleepMeasuresResponse represents the unmarshelled api response for sleep measures.
 type RawSleepMeasuresResponse struct {
 	Status      int                           `json:"status"`
 	Body        *RawSleepMeasuresResponseBody `json:"body"`
 	RawResponse []byte
 }
 
+// RawSleepMeasuresResponseBody actrepresents the unmarshelled api response for sleep measures body.
 type RawSleepMeasuresResponseBody struct {
 	Series []SleepMeasure `json:"series"`
 	Model  int            `json:"model"`
 }
 
+// SleepMeasure is a specific instance of sleep returned by the API.
 type SleepMeasure struct {
 	StartDate       int64                 `json:"startdate"`
 	EndDate         int64                 `json:"enddate"`

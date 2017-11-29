@@ -402,7 +402,7 @@ func (u User) GetSleepMeasure(params *SleepMeasuresQueryParam) (RawSleepMeasures
 	v.Add(GetFieldName(*params, "EndDate"), strconv.FormatInt(params.EndDate.Unix(), 10))
 
 	path := fmt.Sprintf("http://api.health.nokia.com/v2/sleep?%s", v.Encode())
-	log.Println(path)
+
 	resp, err := httpClient.Get(path)
 	if err != nil {
 		return sleepMeasureRepsonse, err
@@ -422,6 +422,7 @@ func (u User) GetSleepMeasure(params *SleepMeasuresQueryParam) (RawSleepMeasures
 		return sleepMeasureRepsonse, err
 	}
 
+	// Parse dates
 	if sleepMeasureRepsonse.Body != nil {
 		for i, _ := range sleepMeasureRepsonse.Body.Series {
 			t := time.Unix(sleepMeasureRepsonse.Body.Series[i].StartDate, 0)
@@ -433,6 +434,84 @@ func (u User) GetSleepMeasure(params *SleepMeasuresQueryParam) (RawSleepMeasures
 	}
 
 	return sleepMeasureRepsonse, nil
+}
+
+// GetSleepSummary retrieves the sleep summary information provided. A SleepSummaryQueryParam is
+// required as a timeframe is needed by the API. If null is provided the last 24 hours will be used.
+func (u User) GetSleepSummary(params *SleepSummaryQueryParam) (RawSleepSummaryResponse, error) {
+	sleepSummaryResponse := RawSleepSummaryResponse{}
+
+	httpClient := u.Client.OAuthConfig.Client(oauth1.NoContext, u.AccessToken)
+
+	// Build query params
+	v := url.Values{}
+	v.Add("userid", strconv.Itoa(u.UserID))
+	v.Add("action", "getsummary")
+
+	// Params are required for this api call. To be consident we handle empty params and build
+	// one with sensible defaults if needed.
+	if params == nil {
+		params = &SleepSummaryQueryParam{}
+		t1 := time.Now()
+		t2 := time.Now().AddDate(0, 0, -1)
+		params.StartDateYMD = &t1
+		params.EndDateYMD = &t2
+	}
+
+	// Although the API currently says the type is a UNIX time stamp the reality is it's a date string.
+	v.Add(GetFieldName(*params, "StartDateYMD"), params.StartDateYMD.Format("2006-01-02"))
+	v.Add(GetFieldName(*params, "EndDateYMD"), params.EndDateYMD.Format("2006-01-02"))
+
+	path := fmt.Sprintf("http://api.health.nokia.com/v2/sleep?%s", v.Encode())
+	log.Println(path)
+
+	resp, err := httpClient.Get(path)
+	if err != nil {
+		return sleepSummaryResponse, err
+	}
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return sleepSummaryResponse, err
+	}
+	if u.Client.SaveRawResponse {
+		sleepSummaryResponse.RawResponse = body
+	}
+
+	err = json.Unmarshal(body, &sleepSummaryResponse)
+	if err != nil {
+		return sleepSummaryResponse, err
+	}
+
+	// Parse all the date fields.
+	if sleepSummaryResponse.Body != nil {
+		for i, _ := range sleepSummaryResponse.Body.Series {
+
+			// Parse the normal UNIX time stamps.
+			startDate := time.Unix(sleepSummaryResponse.Body.Series[i].StartDate, 0)
+			endDate := time.Unix(sleepSummaryResponse.Body.Series[i].EndDate, 0)
+			sleepSummaryResponse.Body.Series[i].StartDateParsed = &startDate
+			sleepSummaryResponse.Body.Series[i].EndDateParsed = &endDate
+
+			// Parse the goofy YYYY-MM-DD plus location date.
+			location, err := time.LoadLocation(sleepSummaryResponse.Body.Series[i].TimeZone)
+			if err != nil {
+				return sleepSummaryResponse, err
+			}
+
+			t, err := time.Parse("2006-01-02", sleepSummaryResponse.Body.Series[i].Date)
+			if err != nil {
+				return sleepSummaryResponse, err
+			}
+
+			t = t.In(location)
+			sleepSummaryResponse.Body.Series[i].DateParsed = &t
+		}
+	}
+
+	return sleepSummaryResponse, nil
+
 }
 
 // GenerateUser creates a new user object based on the values provided for the
