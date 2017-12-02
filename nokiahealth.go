@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/url"
 	"strconv"
 	"time"
@@ -534,7 +533,6 @@ func (u User) CreateNotification(params *CreateNotificationParam) (RawCreateNoti
 	v.Add(GetFieldName(*params, "Appli"), strconv.Itoa(params.Appli))
 
 	path := fmt.Sprintf("https://api.health.nokia.com/notify?%s", v.Encode())
-	log.Println(path)
 
 	resp, err := httpClient.Get(path)
 	if err != nil {
@@ -576,7 +574,6 @@ func (u User) ListNotifications(params *ListNotificationsParam) (RawListNotifica
 	}
 
 	path := fmt.Sprintf("https://api.health.nokia.com/notify?%s", v.Encode())
-	log.Println(path)
 
 	resp, err := httpClient.Get(path)
 	if err != nil {
@@ -627,7 +624,6 @@ func (u User) GetNotificationInformation(params *NotificationInfoParam) (RawNoti
 	v.Add(GetFieldName(*params, "Appli"), strconv.Itoa(*params.Appli))
 
 	path := fmt.Sprintf("https://api.health.nokia.com/notify?%s", v.Encode())
-	log.Println(path)
 
 	resp, err := httpClient.Get(path)
 	if err != nil {
@@ -656,6 +652,49 @@ func (u User) GetNotificationInformation(params *NotificationInfoParam) (RawNoti
 	}
 
 	return notificationInfoResponse, nil
+}
+
+// RevokeNotification revokes a notification so it no longer sends.
+func (u User) RevokeNotification(params *RevokeNotificationParam) (RawRevokeNotificationResponse, error) {
+	revokeResponse := RawRevokeNotificationResponse{}
+
+	httpClient := u.Client.OAuthConfig.Client(oauth1.NoContext, u.AccessToken)
+
+	// Build query params.
+	v := url.Values{}
+	v.Add("userid", strconv.Itoa(u.UserID))
+	v.Add("action", "revoke")
+
+	if params == nil {
+		params = &RevokeNotificationParam{}
+	}
+
+	v.Add(GetFieldName(*params, "CallbackURL"), params.CallbackURL.String())
+	v.Add(GetFieldName(*params, "Appli"), strconv.Itoa(*params.Appli))
+
+	path := fmt.Sprintf("https://api.health.nokia.com/notify?%s", v.Encode())
+
+	resp, err := httpClient.Get(path)
+	if err != nil {
+		return revokeResponse, err
+	}
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return revokeResponse, err
+	}
+	if u.Client.SaveRawResponse {
+		revokeResponse.RawResponse = body
+	}
+
+	err = json.Unmarshal(body, &revokeResponse)
+	if err != nil {
+		return revokeResponse, err
+	}
+
+	return revokeResponse, nil
+
 }
 
 // GenerateUser creates a new user object based on the values provided for the

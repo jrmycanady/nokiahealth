@@ -27,6 +27,18 @@ func GetFieldName(s interface{}, name string) string {
 	return tag
 }
 
+// RevokeNotification provides the query parameters nessasry to revoke a notification.
+type RevokeNotificationParam struct {
+	CallbackURL url.URL `json:"callbackurl"`
+	Appli       *int    `json:"appli"`
+}
+
+// RawRevokeNotificationResponse is the response from trying to revoke a notification.
+type RawRevokeNotificationResponse struct {
+	Status      int `json:"status"`
+	RawResponse []byte
+}
+
 // NotificationInfoParam provides the query parameters nessasary to retrieve
 // information about a specific notification.
 type NotificationInfoParam struct {
