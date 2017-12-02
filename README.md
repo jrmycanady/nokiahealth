@@ -9,7 +9,7 @@ This is a go library that allows easy access to the Nokia Health API (https://de
 
 The Nokia Health OAuth implemenation required some modifcations resulting in a fork of dghubble/oauth1. This project relies on the fork located at jrmycanady/oauth1. 
 
-## Current Working Features
+## Supported Resources (Currently all in the public API docs.)
 * User Access Requests
 * Retrieving user body measurements
 * Retrieve activity measurments
@@ -20,7 +20,7 @@ The Nokia Health OAuth implemenation required some modifcations resulting in a f
 * Creating a notification
 * Retreiving a single notification
 * Retreiving all notifications for a user
-
+* Revoke notifications
 
 ## Installation
   go get github.com/jrmycanady/nokiahealth
