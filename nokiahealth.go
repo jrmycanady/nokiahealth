@@ -598,12 +598,64 @@ func (u User) ListNotifications(params *ListNotificationsParam) (RawListNotifica
 	}
 
 	// Parse dates
-	for i, _ := range listNotificationResponse.Body.Profiles {
-		d := time.Unix(listNotificationResponse.Body.Profiles[0].Expires, 0)
-		listNotificationResponse.Body.Profiles[i].ExpiresParsed = &d
+	if listNotificationResponse.Body != nil {
+		for i, _ := range listNotificationResponse.Body.Profiles {
+			d := time.Unix(listNotificationResponse.Body.Profiles[0].Expires, 0)
+			listNotificationResponse.Body.Profiles[i].ExpiresParsed = &d
+		}
 	}
 
 	return listNotificationResponse, nil
+}
+
+// ListNotifications lists all the notifications found for the user.
+func (u User) GetNotificationInformation(params *NotificationInfoParam) (RawNotificationInfoResponse, error) {
+	notificationInfoResponse := RawNotificationInfoResponse{}
+
+	httpClient := u.Client.OAuthConfig.Client(oauth1.NoContext, u.AccessToken)
+
+	// Build query params.
+	v := url.Values{}
+	v.Add("userid", strconv.Itoa(u.UserID))
+	v.Add("action", "get")
+
+	if params == nil {
+		params = &NotificationInfoParam{}
+	}
+
+	v.Add(GetFieldName(*params, "CallbackURL"), params.CallbackURL.String())
+	v.Add(GetFieldName(*params, "Appli"), strconv.Itoa(*params.Appli))
+
+	path := fmt.Sprintf("https://api.health.nokia.com/notify?%s", v.Encode())
+	log.Println(path)
+
+	resp, err := httpClient.Get(path)
+	if err != nil {
+		return notificationInfoResponse, err
+	}
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return notificationInfoResponse, err
+	}
+	if u.Client.SaveRawResponse {
+		notificationInfoResponse.RawResponse = body
+	}
+
+	err = json.Unmarshal(body, &notificationInfoResponse)
+	if err != nil {
+		return notificationInfoResponse, err
+	}
+
+	// Parse dates
+	if notificationInfoResponse.Body != nil {
+		d := time.Unix(notificationInfoResponse.Body.Expires, 0)
+		notificationInfoResponse.Body.ExpiresParsed = &d
+
+	}
+
+	return notificationInfoResponse, nil
 }
 
 // GenerateUser creates a new user object based on the values provided for the

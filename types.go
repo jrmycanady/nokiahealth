@@ -27,11 +27,32 @@ func GetFieldName(s interface{}, name string) string {
 	return tag
 }
 
+// NotificationInfoParam provides the query parameters nessasary to retrieve
+// information about a specific notification.
+type NotificationInfoParam struct {
+	CallbackURL url.URL `json:"callbackurl"`
+	Appli       *int    `json:"appli"`
+}
+
+// RawNotificationInfoResponse represents the unmarshelled api reponse for viewing
+// a single notification.
+type RawNotificationInfoResponse struct {
+	Status      int                              `json:"status"`
+	Body        *RawNotificationInfoResponseBody `json:"body"`
+	RawResponse []byte
+}
+
+// RawNotificationInfoResponseBody represents the body of the notification response.
+type RawNotificationInfoResponseBody struct {
+	Expires       int64      `json:"expires"`
+	Comment       string     `json:"comment"`
+	ExpiresParsed *time.Time `json:"expiresparsed"`
+}
+
 // ListNotificationsParam provides the query parameters nessasary to list
 // all the notifications configured for the user.
 type ListNotificationsParam struct {
-	UserID int  `json:"userid"`
-	Appli  *int `json:"appli"`
+	Appli *int `json:"appli"`
 }
 
 // RawListNotificationReponse represents the unmarshelled api response for listing notifications.
@@ -56,7 +77,6 @@ type NotificationProfile struct {
 // CreateNotificationParam provides the query parameters nessasary to create a notication
 // via the Nokia Health API.
 type CreateNotificationParam struct {
-	UserID      int     `json:"userid"`
 	CallbackURL url.URL `json:"callbackurl"`
 	Comment     string  `json:"comment"`
 	Appli       int     `json:"appli"`
