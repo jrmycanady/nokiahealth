@@ -463,7 +463,6 @@ func (u User) GetSleepSummary(params *SleepSummaryQueryParam) (RawSleepSummaryRe
 	v.Add(GetFieldName(*params, "EndDateYMD"), params.EndDateYMD.Format("2006-01-02"))
 
 	path := fmt.Sprintf("http://api.health.nokia.com/v2/sleep?%s", v.Encode())
-	log.Println(path)
 
 	resp, err := httpClient.Get(path)
 	if err != nil {
@@ -512,6 +511,99 @@ func (u User) GetSleepSummary(params *SleepSummaryQueryParam) (RawSleepSummaryRe
 
 	return sleepSummaryResponse, nil
 
+}
+
+// CreateNotification creates a new notification.
+func (u User) CreateNotification(params *CreateNotificationParam) (RawCreateNotificationResponse, error) {
+	createNotificationResponse := RawCreateNotificationResponse{}
+
+	httpClient := u.Client.OAuthConfig.Client(oauth1.NoContext, u.AccessToken)
+
+	// Build a params if nil as it is required.
+	if params == nil {
+		params = &CreateNotificationParam{}
+	}
+
+	// Build query params.
+	v := url.Values{}
+	v.Add("userid", strconv.Itoa(u.UserID))
+	v.Add("action", "subscribe")
+
+	v.Add(GetFieldName(*params, "CallbackURL"), params.CallbackURL.String())
+	v.Add(GetFieldName(*params, "Comment"), params.Comment)
+	v.Add(GetFieldName(*params, "Appli"), strconv.Itoa(params.Appli))
+
+	path := fmt.Sprintf("https://api.health.nokia.com/notify?%s", v.Encode())
+	log.Println(path)
+
+	resp, err := httpClient.Get(path)
+	if err != nil {
+		return createNotificationResponse, err
+	}
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return createNotificationResponse, err
+	}
+	if u.Client.SaveRawResponse {
+		createNotificationResponse.RawResponse = body
+	}
+
+	err = json.Unmarshal(body, &createNotificationResponse)
+	if err != nil {
+		return createNotificationResponse, err
+	}
+
+	return createNotificationResponse, nil
+}
+
+// ListNotifications lists all the notifications found for the user.
+func (u User) ListNotifications(params *ListNotificationsParam) (RawListNotificationsResponse, error) {
+	listNotificationResponse := RawListNotificationsResponse{}
+
+	httpClient := u.Client.OAuthConfig.Client(oauth1.NoContext, u.AccessToken)
+
+	// Build query params.
+	v := url.Values{}
+	v.Add("userid", strconv.Itoa(u.UserID))
+	v.Add("action", "list")
+
+	if params != nil {
+		if params.Appli != nil {
+			v.Add(GetFieldName(*params, "Appli"), strconv.Itoa(*params.Appli))
+		}
+	}
+
+	path := fmt.Sprintf("https://api.health.nokia.com/notify?%s", v.Encode())
+	log.Println(path)
+
+	resp, err := httpClient.Get(path)
+	if err != nil {
+		return listNotificationResponse, err
+	}
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return listNotificationResponse, err
+	}
+	if u.Client.SaveRawResponse {
+		listNotificationResponse.RawResponse = body
+	}
+
+	err = json.Unmarshal(body, &listNotificationResponse)
+	if err != nil {
+		return listNotificationResponse, err
+	}
+
+	// Parse dates
+	for i, _ := range listNotificationResponse.Body.Profiles {
+		d := time.Unix(listNotificationResponse.Body.Profiles[0].Expires, 0)
+		listNotificationResponse.Body.Profiles[i].ExpiresParsed = &d
+	}
+
+	return listNotificationResponse, nil
 }
 
 // GenerateUser creates a new user object based on the values provided for the

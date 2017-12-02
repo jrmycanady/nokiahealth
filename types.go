@@ -2,6 +2,7 @@ package nokiahealth
 
 import (
 	"math"
+	"net/url"
 	"reflect"
 	"time"
 
@@ -24,6 +25,48 @@ func GetFieldName(s interface{}, name string) string {
 		tag = f.Tag.Get("json")
 	}
 	return tag
+}
+
+// ListNotificationsParam provides the query parameters nessasary to list
+// all the notifications configured for the user.
+type ListNotificationsParam struct {
+	UserID int  `json:"userid"`
+	Appli  *int `json:"appli"`
+}
+
+// RawListNotificationReponse represents the unmarshelled api response for listing notifications.
+type RawListNotificationsResponse struct {
+	Status      int                               `json:"status"`
+	Body        *RawListNotificationsResponseBody `json:"body"`
+	RawResponse []byte
+}
+
+// RawListNotificationResponseBody represents the notification list body.
+type RawListNotificationsResponseBody struct {
+	Profiles []NotificationProfile `json:"profiles"`
+}
+
+// NotificationProile is a notification profile for the user.
+type NotificationProfile struct {
+	Expires       int64      `json:"expires"`
+	Comment       string     `json:"comment"`
+	ExpiresParsed *time.Time `json:"expiresparsed"`
+}
+
+// CreateNotificationParam provides the query parameters nessasary to create a notication
+// via the Nokia Health API.
+type CreateNotificationParam struct {
+	UserID      int     `json:"userid"`
+	CallbackURL url.URL `json:"callbackurl"`
+	Comment     string  `json:"comment"`
+	Appli       int     `json:"appli"`
+}
+
+// RawCreateNotificationResponse provides the response of the create request.
+type RawCreateNotificationResponse struct {
+	Status      int    `json:"status"`
+	Error       string `json:"error"`
+	RawResponse []byte
 }
 
 // SleepSummaryQueryParam provides the query parameters for requests of sleep
