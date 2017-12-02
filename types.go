@@ -14,7 +14,7 @@ import (
 	"github.com/jrmycanady/nokiahealth/enum/workouttype"
 )
 
-// GetFieldNames returns the json filed name for the field if one is found. If
+// GetFieldName returns the json filed name for the field if one is found. If
 // one is not found it will return an empty string.
 func GetFieldName(s interface{}, name string) string {
 	t := reflect.TypeOf(s)
@@ -55,19 +55,19 @@ type ListNotificationsParam struct {
 	Appli *int `json:"appli"`
 }
 
-// RawListNotificationReponse represents the unmarshelled api response for listing notifications.
+// RawListNotificationsResponse represents the unmarshelled api response for listing notifications.
 type RawListNotificationsResponse struct {
 	Status      int                               `json:"status"`
 	Body        *RawListNotificationsResponseBody `json:"body"`
 	RawResponse []byte
 }
 
-// RawListNotificationResponseBody represents the notification list body.
+// RawListNotificationsResponseBody represents the notification list body.
 type RawListNotificationsResponseBody struct {
 	Profiles []NotificationProfile `json:"profiles"`
 }
 
-// NotificationProile is a notification profile for the user.
+// NotificationProfile is a notification profile for the user.
 type NotificationProfile struct {
 	Expires       int64      `json:"expires"`
 	Comment       string     `json:"comment"`
