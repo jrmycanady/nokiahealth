@@ -1,6 +1,6 @@
-# Go library for the Nokia Health API
+# Go client for the Nokia Health API
 
-This is a go library that allows easy access to the Nokia Health API (https://developer.health.nokia.com/api/doc). More detailed documentation can be found in the godocs (https://godoc.org/github.com/jrmycanady/nokiahealth).
+This is a go client that allows easy access to the Nokia Health API (https://developer.health.nokia.com/api/doc). More detailed documentation can be found in the godocs (https://godoc.org/github.com/jrmycanady/nokiahealth).
 
 **NOTICE** - Looking for users with data from various withings devices. Currently only testing against an account with a withings scale. The API documentation is very sketchy and testing against real data may find more issues.
 
@@ -31,9 +31,9 @@ All requests to the api for data requires a valid authenticated user token. You 
 
 Once that is complete, you will need to request a token for the user. If you are the user, you can perform this via the [api site](https://developer.health.nokia.com/api). On the other hand if you are develping an application for end users you will need to utilize the token request process detailed below.
 
-### Token Request Process
+### User Authorization
 
-Oauth1 has a multi step request process to generate a token for the end user. Details around this can be found [here](https://developer.health.nokia.com/api) as well as general searching. The short of it is:
+Oauth1 has a multi step request process to generate a token for the end user. Details around this can be found [here](https://developer.health.nokia.com/api) as well as general searching. A short example is show below but for further information see the [godcos](https://godoc.org/github.com/jrmycanady/nokiahealth)
 
 1. Generate end-user authorization url and provide it to the end user to click on. This URL is encoded in such a way that Nokia knows the user is requesting to give your develper account access to theirs.
 
@@ -47,7 +47,7 @@ if err != nil {
 
 fmt.Println(ar.AuthorizationURL)
 ```
-2. If you provided a callback URL nokia will then redirect them to that URL with queyr parameters set containing the verfier string and userid. Otherwise if it's empty the user will see it on screen and would need to copy and paste it into your app. Once you have thow two bits of into, it's time to get the token.
+2. If you provided a callback URL nokia will then redirect them to that URL with queyr parameters set containing the verfier string and userid. Otherwise if it's empty the user will see it on screen and would need to copy and paste it into your app. Once you have those two bits of info, it's time to get the token.
 ```go
 u, err := ar.GenerateUser("<verifier>", <userid>)
 if err != nil {
@@ -81,22 +81,11 @@ p := nokiahealth.BodyMeasuresQueryParams{}
 t := time.Now().AddDate(0, 0, -14)
 p.StartDate = &t
 
-m, err := u.GetBodyMeasure(&p)
+m, err := u.GetBodyMeasures(&p)
 ```
 
-The results is either an error or the unmarshled json response from the API. You can work with the response, but more likely you will want to perform the ParseData method which generates a user friendly form of the data. For example it's bucketed into the type of measurement and all values are converted with the proper units.
+In most cases the response will contain all the information you need. Some methods provide additional optional processing that can provide a more usable form to the data. GetBodyMeasures is one of these methods. It's recommended to read the [docs](https://godoc.org/github.com/jrmycanady/nokiahealth) for each method to see how best to use them. 
 
 ```go
 measures := m.ParseData()
-```
-
-To save a step, most query params offer the option to set ParseResponse to true. Doing so will result in the unmarshled json response containing the ParsedResponse property already parsed and ready to use.
-
-
-### Raw API Response Access
-The client can be modified to save the raw []byte response from the api by settings the SaveRawResponse to true on the client struct.
-```go
-client.SaveRawResponse = true
-m, err := u.GetBodyMeasure(nil)
-fmt.Println(m.RawResponse)
 ```

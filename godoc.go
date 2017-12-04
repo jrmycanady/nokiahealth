@@ -1,4 +1,4 @@
-// The package nokiahealth is a client library for for working with the Nokia
+// Package nokiahealth is a client library for for working with the Nokia
 // Health (Withings) API. It includes support for all resources listed on the public
 // api documentation at https://developer.health.nokia.com/api/doc. This
 // includes everything from user access token generation to retreiving
@@ -104,4 +104,10 @@
 // storing the access request token and secret somewhere. Both of which are
 // public fields on the AccessRequest struct.
 //  ar := client.RebuildAccessReuqest("token", "secret")
+//
+// Debug / Testing Client Options
+// The client includes a couple options to help with possible debugging or testing.
+// These include the SaveRawResponse and IncludePath fields. If either are set
+// to true, the returned responses from user methods will include the path and/or
+// the raw []byte response.
 package nokiahealth
