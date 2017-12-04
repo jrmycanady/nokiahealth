@@ -20,8 +20,10 @@
 //
 // Supported Resources
 //
-// * Generate User Access Request and URL
-// * Get Activity Measures
+//  Generate User Access Request and URL
+//
+//  Get Activity Measures
+//
 // * Get Body Measures
 // * Get Intraday Activity (Requires additional approval by Nokia Health)
 // * Get Sleep Measures
