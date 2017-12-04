@@ -110,6 +110,29 @@ func TestGetIntradayActivities(t *testing.T) {
 	}
 }
 
+func TestGetWorkouts(t *testing.T) {
+	err := LoadConfig()
+	if err != nil {
+		t.Fatal("Failed to load config file.")
+	}
+
+	// Build the client.
+	c := NewClient(tc.DevToken, tc.DevSecret, "")
+	c.SaveRawResponse = true
+
+	// Build the user
+	u := c.GenerateUser(tc.UserToken, tc.UserSecret, tc.UserID)
+
+	m, err := u.GetWorkouts(nil)
+	if err != nil {
+		t.Fatalf("failed to get body measurements: %v", err)
+	}
+
+	if m.Status != 0 {
+		t.Fatalf("failed to get body measurements with api error %d => %v", m.Status, m.Status.String())
+	}
+}
+
 func TestGetSleepMeasure(t *testing.T) {
 	err := LoadConfig()
 	if err != nil {

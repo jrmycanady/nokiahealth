@@ -12,7 +12,16 @@ import (
 )
 
 const (
-	getBodyMeasuresURL = "https://api.health.nokia.com/measure?action=getmeas"
+	getIntradayActivitiesURL      = "https://api.health.nokia.com/v2/measure"
+	getActivityMeasuresURL        = "https://api.health.nokia.com/v2/measure"
+	getWorkoutsURL                = "https://api.health.nokia.com/v2/measure"
+	getBodyMeasureURL             = "https://api.health.nokia.com/measure"
+	getSleepMeasureURL            = "https://api.health.nokia.com/v2/sleep"
+	getSleepSummaryURL            = "https://api.health.nokia.com/v2/sleep"
+	createNotficationURL          = "https://api.health.nokia.com/notify"
+	listNotificationsURL          = "https://api.health.nokia.com/notify"
+	getNotificationInformationURL = "https://api.health.nokia.com/notify"
+	revokeNotificationURL         = "https://api.health.nokia.com/notify"
 )
 
 // NokiaHealthEndpoint provides the oauth endpoint URLs for the Nokia Health API.
@@ -110,6 +119,8 @@ func (ar AccessRequest) GenerateUser(verifier string, userID int) (User, error) 
 	return u, nil
 }
 
+// GetIntradayActivities retreieves intraday activites from the API. Special permissions provided by
+// Nokia Health are required to use this resource.
 func (u User) GetIntradayActivities(params *IntradayActivityQueryParam) (RawIntradayActivityResponse, error) {
 	intraDayActivityResponse := RawIntradayActivityResponse{}
 
@@ -129,7 +140,7 @@ func (u User) GetIntradayActivities(params *IntradayActivityQueryParam) (RawIntr
 		}
 	}
 
-	path := fmt.Sprintf("https://api.health.nokia.com/v2/measure?%s", v.Encode())
+	path := fmt.Sprintf("%s?%s", getIntradayActivitiesURL, v.Encode())
 
 	resp, err := httpClient.Get(path)
 	if err != nil {
@@ -180,7 +191,7 @@ func (u User) GetActivityMeasures(params *ActivityMeasureQueryParam) (RawActivit
 		}
 	}
 
-	path := fmt.Sprintf("https://api.health.nokia.com/v2/measure?%s", v.Encode())
+	path := fmt.Sprintf("%s?%s", getActivityMeasuresURL, v.Encode())
 
 	resp, err := httpClient.Get(path)
 	if err != nil {
@@ -258,7 +269,7 @@ func (u User) GetWorkouts(params *WorkoutsQueryParam) (RawWorkoutResponse, error
 		}
 	}
 
-	path := fmt.Sprintf("https://api.health.nokia.com/v2/measure?%s", v.Encode())
+	path := fmt.Sprintf("%s?%s", getWorkoutsURL, v.Encode())
 
 	resp, err := httpClient.Get(path)
 	if err != nil {
@@ -347,7 +358,7 @@ func (u User) GetBodyMeasure(params *BodyMeasuresQueryParams) (RawBodyMeasuresRe
 		}
 	}
 
-	path := fmt.Sprintf("https://api.health.nokia.com/measure?%s", v.Encode())
+	path := fmt.Sprintf("%s?%s", getBodyMeasureURL, v.Encode())
 
 	resp, err := httpClient.Get(path)
 	if err != nil {
@@ -400,7 +411,7 @@ func (u User) GetSleepMeasure(params *SleepMeasuresQueryParam) (RawSleepMeasures
 	v.Add(GetFieldName(*params, "StartDate"), strconv.FormatInt(params.StartDate.Unix(), 10))
 	v.Add(GetFieldName(*params, "EndDate"), strconv.FormatInt(params.EndDate.Unix(), 10))
 
-	path := fmt.Sprintf("https://api.health.nokia.com/v2/sleep?%s", v.Encode())
+	path := fmt.Sprintf("%s?%s", getSleepMeasureURL, v.Encode())
 
 	resp, err := httpClient.Get(path)
 	if err != nil {
@@ -461,7 +472,7 @@ func (u User) GetSleepSummary(params *SleepSummaryQueryParam) (RawSleepSummaryRe
 	v.Add(GetFieldName(*params, "StartDateYMD"), params.StartDateYMD.Format("2006-01-02"))
 	v.Add(GetFieldName(*params, "EndDateYMD"), params.EndDateYMD.Format("2006-01-02"))
 
-	path := fmt.Sprintf("https://api.health.nokia.com/v2/sleep?%s", v.Encode())
+	path := fmt.Sprintf("%s?%s", getSleepSummaryURL, v.Encode())
 
 	resp, err := httpClient.Get(path)
 	if err != nil {
@@ -532,7 +543,7 @@ func (u User) CreateNotification(params *CreateNotificationParam) (RawCreateNoti
 	v.Add(GetFieldName(*params, "Comment"), params.Comment)
 	v.Add(GetFieldName(*params, "Appli"), strconv.Itoa(params.Appli))
 
-	path := fmt.Sprintf("https://api.health.nokia.com/notify?%s", v.Encode())
+	path := fmt.Sprintf("%s?%s", createNotficationURL, v.Encode())
 
 	resp, err := httpClient.Get(path)
 	if err != nil {
@@ -573,7 +584,7 @@ func (u User) ListNotifications(params *ListNotificationsParam) (RawListNotifica
 		}
 	}
 
-	path := fmt.Sprintf("https://api.health.nokia.com/notify?%s", v.Encode())
+	path := fmt.Sprintf("%s?%s", listNotificationsURL, v.Encode())
 
 	resp, err := httpClient.Get(path)
 	if err != nil {
@@ -623,7 +634,7 @@ func (u User) GetNotificationInformation(params *NotificationInfoParam) (RawNoti
 	v.Add(GetFieldName(*params, "CallbackURL"), params.CallbackURL.String())
 	v.Add(GetFieldName(*params, "Appli"), strconv.Itoa(*params.Appli))
 
-	path := fmt.Sprintf("https://api.health.nokia.com/notify?%s", v.Encode())
+	path := fmt.Sprintf("%s?%s", getNotificationInformationURL, v.Encode())
 
 	resp, err := httpClient.Get(path)
 	if err != nil {
@@ -672,7 +683,7 @@ func (u User) RevokeNotification(params *RevokeNotificationParam) (RawRevokeNoti
 	v.Add(GetFieldName(*params, "CallbackURL"), params.CallbackURL.String())
 	v.Add(GetFieldName(*params, "Appli"), strconv.Itoa(*params.Appli))
 
-	path := fmt.Sprintf("https://api.health.nokia.com/notify?%s", v.Encode())
+	path := fmt.Sprintf("%s?%s", revokeNotificationURL, v.Encode())
 
 	resp, err := httpClient.Get(path)
 	if err != nil {
