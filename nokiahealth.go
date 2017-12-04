@@ -67,6 +67,20 @@ type AccessRequest struct {
 	Client           Client
 }
 
+// RebuildAccessRequest builds an access request from a known
+// secret and token. This is generally used to generate a user
+// when receiving a callback.
+func (c Client) RebuildAccessReuqest(token string, secret string) AccessRequest {
+	ar := AccessRequest{
+		Client:        c,
+		RequestToken:  token,
+		RequestSecret: secret,
+	}
+
+	return ar
+
+}
+
 // CreateAccessRequest creates a new access request based on the clients credentials.
 // The returned AccessRequest will contain the authorization URL
 // needed for users to authorize access.
