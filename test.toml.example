@@ -1,0 +1,8 @@
+# The developer authentication information.
+devToken = ""
+devSecret = ""
+
+# The ID of the user requests will be made for.
+userID = 0
+userToken = ""
+userSecret = ""

@@ -10,6 +10,7 @@ import (
 	"github.com/jrmycanady/nokiahealth/enum/sleepstate"
 
 	"github.com/jrmycanady/nokiahealth/enum/devtype"
+	"github.com/jrmycanady/nokiahealth/enum/status"
 
 	"github.com/jrmycanady/nokiahealth/enum/workouttype"
 )
@@ -35,7 +36,7 @@ type RevokeNotificationParam struct {
 
 // RawRevokeNotificationResponse is the response from trying to revoke a notification.
 type RawRevokeNotificationResponse struct {
-	Status      int `json:"status"`
+	Status      status.Status `json:"status"`
 	RawResponse []byte
 }
 
@@ -49,7 +50,7 @@ type NotificationInfoParam struct {
 // RawNotificationInfoResponse represents the unmarshelled api reponse for viewing
 // a single notification.
 type RawNotificationInfoResponse struct {
-	Status      int                              `json:"status"`
+	Status      status.Status                    `json:"status"`
 	Body        *RawNotificationInfoResponseBody `json:"body"`
 	RawResponse []byte
 }
@@ -69,7 +70,7 @@ type ListNotificationsParam struct {
 
 // RawListNotificationsResponse represents the unmarshelled api response for listing notifications.
 type RawListNotificationsResponse struct {
-	Status      int                               `json:"status"`
+	Status      status.Status                     `json:"status"`
 	Body        *RawListNotificationsResponseBody `json:"body"`
 	RawResponse []byte
 }
@@ -96,8 +97,8 @@ type CreateNotificationParam struct {
 
 // RawCreateNotificationResponse provides the response of the create request.
 type RawCreateNotificationResponse struct {
-	Status      int    `json:"status"`
-	Error       string `json:"error"`
+	Status      status.Status `json:"status"`
+	Error       string        `json:"error"`
 	RawResponse []byte
 }
 
@@ -122,7 +123,7 @@ type SleepMeasuresQueryParam struct {
 
 // RawSleepSummaryResponse represents the unmarshelled api response for sleep summary.
 type RawSleepSummaryResponse struct {
-	Status      int                  `json:"status"`
+	Status      status.Status        `json:"status"`
 	Body        *RawSleepSummaryBody `json:"body"`
 	RawResponse []byte
 }
@@ -162,7 +163,7 @@ type SleepSummaryData struct {
 
 // RawSleepMeasuresResponse represents the unmarshelled api response for sleep measures.
 type RawSleepMeasuresResponse struct {
-	Status      int                           `json:"status"`
+	Status      status.Status                 `json:"status"`
 	Body        *RawSleepMeasuresResponseBody `json:"body"`
 	RawResponse []byte
 }
@@ -191,7 +192,7 @@ type IntradayActivityQueryParam struct {
 
 // RawIntradayActivityResponse represents the unmarshelled api response for intraday activities.
 type RawIntradayActivityResponse struct {
-	Status      int                              `json:"status"`
+	Status      status.Status                    `json:"status"`
 	Body        *RawIntradayActivityResponseBody `json:"body"`
 	RawResponse []byte
 }
@@ -222,7 +223,7 @@ type WorkoutsQueryParam struct {
 
 // RawWorkoutResponse represents the unmarshelled api response for workouts.
 type RawWorkoutResponse struct {
-	Status      int                     `json:"status"`
+	Status      status.Status           `json:"status"`
 	Body        *RawWorkoutResponseBody `json:"body"`
 	RawResponse []byte
 }
@@ -269,7 +270,7 @@ type ActivityMeasureQueryParam struct {
 // If the client has been set to include raw respeonse the RawResponse byte slice
 // will be populated with raw bytes returned by the API.
 type RawActivitiesMeasuresResponse struct {
-	Status      int                                `json:"status"`
+	Status      status.Status                      `json:"status"`
 	Body        *RawActivitiesMeasuresResponseBody `json:"body"`
 	RawResponse []byte
 }
@@ -331,7 +332,7 @@ type BodyMeasuresQueryParams struct {
 // If the client has been set to include raw respeonse the RawResponse byte slice
 // will be populated with raw bytes returned by the API.
 type RawBodyMeasuresResponse struct {
-	Status         int                         `json:"status"`
+	Status         status.Status               `json:"status"`
 	Body           *RawBodyMeasureResponseBody `json:"body"`
 	RawResponse    []byte
 	ParsedResponse *BodyMeasures
