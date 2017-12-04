@@ -106,6 +106,7 @@
 //  ar := client.RebuildAccessReuqest("token", "secret")
 //
 // Debug / Testing Client Options
+//
 // The client includes a couple options to help with possible debugging or testing.
 // These include the SaveRawResponse and IncludePath fields. If either are set
 // to true, the returned responses from user methods will include the path and/or
