@@ -129,7 +129,7 @@ func (u User) GetIntradayActivities(params *IntradayActivityQueryParam) (RawIntr
 		}
 	}
 
-	path := fmt.Sprintf("http://api.health.nokia.com/v2/measure?%s", v.Encode())
+	path := fmt.Sprintf("https://api.health.nokia.com/v2/measure?%s", v.Encode())
 
 	resp, err := httpClient.Get(path)
 	if err != nil {
@@ -180,7 +180,7 @@ func (u User) GetActivityMeasures(params *ActivityMeasureQueryParam) (RawActivit
 		}
 	}
 
-	path := fmt.Sprintf("http://api.health.nokia.com/v2/measure?%s", v.Encode())
+	path := fmt.Sprintf("https://api.health.nokia.com/v2/measure?%s", v.Encode())
 
 	resp, err := httpClient.Get(path)
 	if err != nil {
@@ -258,7 +258,7 @@ func (u User) GetWorkouts(params *WorkoutsQueryParam) (RawWorkoutResponse, error
 		}
 	}
 
-	path := fmt.Sprintf("http://api.health.nokia.com/v2/measure?%s", v.Encode())
+	path := fmt.Sprintf("https://api.health.nokia.com/v2/measure?%s", v.Encode())
 
 	resp, err := httpClient.Get(path)
 	if err != nil {
@@ -347,7 +347,7 @@ func (u User) GetBodyMeasure(params *BodyMeasuresQueryParams) (RawBodyMeasuresRe
 		}
 	}
 
-	path := fmt.Sprintf("http://api.health.nokia.com/measure?%s", v.Encode())
+	path := fmt.Sprintf("https://api.health.nokia.com/measure?%s", v.Encode())
 
 	resp, err := httpClient.Get(path)
 	if err != nil {
@@ -400,7 +400,7 @@ func (u User) GetSleepMeasure(params *SleepMeasuresQueryParam) (RawSleepMeasures
 	v.Add(GetFieldName(*params, "StartDate"), strconv.FormatInt(params.StartDate.Unix(), 10))
 	v.Add(GetFieldName(*params, "EndDate"), strconv.FormatInt(params.EndDate.Unix(), 10))
 
-	path := fmt.Sprintf("http://api.health.nokia.com/v2/sleep?%s", v.Encode())
+	path := fmt.Sprintf("https://api.health.nokia.com/v2/sleep?%s", v.Encode())
 
 	resp, err := httpClient.Get(path)
 	if err != nil {
@@ -461,7 +461,7 @@ func (u User) GetSleepSummary(params *SleepSummaryQueryParam) (RawSleepSummaryRe
 	v.Add(GetFieldName(*params, "StartDateYMD"), params.StartDateYMD.Format("2006-01-02"))
 	v.Add(GetFieldName(*params, "EndDateYMD"), params.EndDateYMD.Format("2006-01-02"))
 
-	path := fmt.Sprintf("http://api.health.nokia.com/v2/sleep?%s", v.Encode())
+	path := fmt.Sprintf("https://api.health.nokia.com/v2/sleep?%s", v.Encode())
 
 	resp, err := httpClient.Get(path)
 	if err != nil {
