@@ -121,8 +121,8 @@ func (ar AccessRequest) GenerateUser(verifier string, userID int) (User, error) 
 
 // GetIntradayActivity retreieves intraday activites from the API. Special permissions provided by
 // Nokia Health are required to use this resource.
-func (u User) GetIntradayActivity(params *IntradayActivityQueryParam) (RawIntradayActivityResponse, error) {
-	intraDayActivityResponse := RawIntradayActivityResponse{}
+func (u User) GetIntradayActivity(params *IntradayActivityQueryParam) (IntradayActivityResp, error) {
+	intraDayActivityResponse := IntradayActivityResp{}
 
 	httpClient := u.Client.OAuthConfig.Client(oauth1.NoContext, u.AccessToken)
 
@@ -166,8 +166,8 @@ func (u User) GetIntradayActivity(params *IntradayActivityQueryParam) (RawIntrad
 
 // GetActivityMeasures retrieves the activity measurements as specified by the config
 // provided.
-func (u User) GetActivityMeasures(params *ActivityMeasureQueryParam) (RawActivitiesMeasuresResponse, error) {
-	activityMeasureResponse := RawActivitiesMeasuresResponse{}
+func (u User) GetActivityMeasures(params *ActivityMeasuresQueryParam) (ActivitiesMeasuresResp, error) {
+	activityMeasureResponse := ActivitiesMeasuresResp{}
 
 	httpClient := u.Client.OAuthConfig.Client(oauth1.NoContext, u.AccessToken)
 
@@ -250,9 +250,9 @@ func (u User) GetActivityMeasures(params *ActivityMeasureQueryParam) (RawActivit
 
 // GetWorkouts retrieves all the workouts for a given date range based on the values
 // provided by params.
-func (u User) GetWorkouts(params *WorkoutsQueryParam) (RawWorkoutResponse, error) {
+func (u User) GetWorkouts(params *WorkoutsQueryParam) (WorkoutResponse, error) {
 
-	workoutResponse := RawWorkoutResponse{}
+	workoutResponse := WorkoutResponse{}
 
 	httpClient := u.Client.OAuthConfig.Client(oauth1.NoContext, u.AccessToken)
 
@@ -321,8 +321,8 @@ func (u User) GetWorkouts(params *WorkoutsQueryParam) (RawWorkoutResponse, error
 
 // GetBodyMeasures retrieves the body measurements as specified by the config
 // provided.
-func (u User) GetBodyMeasures(params *BodyMeasuresQueryParams) (RawBodyMeasuresResponse, error) {
-	bodyMeasureResponse := RawBodyMeasuresResponse{}
+func (u User) GetBodyMeasures(params *BodyMeasuresQueryParams) (BodyMeasuresResp, error) {
+	bodyMeasureResponse := BodyMeasuresResp{}
 
 	httpClient := u.Client.OAuthConfig.Client(oauth1.NoContext, u.AccessToken)
 
@@ -390,8 +390,8 @@ func (u User) GetBodyMeasures(params *BodyMeasuresQueryParams) (RawBodyMeasuresR
 // GetSleepMeasures retrieves the sleep measurements as specified by the config
 // provided. Start and end dates are requires so if the param is not provided
 // one is generated for the past 24 hour timeframe.
-func (u User) GetSleepMeasures(params *SleepMeasuresQueryParam) (RawSleepMeasuresResponse, error) {
-	sleepMeasureRepsonse := RawSleepMeasuresResponse{}
+func (u User) GetSleepMeasures(params *SleepMeasuresQueryParam) (SleepMeasuresResp, error) {
+	sleepMeasureRepsonse := SleepMeasuresResp{}
 
 	httpClient := u.Client.OAuthConfig.Client(oauth1.NoContext, u.AccessToken)
 
@@ -448,8 +448,8 @@ func (u User) GetSleepMeasures(params *SleepMeasuresQueryParam) (RawSleepMeasure
 
 // GetSleepSummary retrieves the sleep summary information provided. A SleepSummaryQueryParam is
 // required as a timeframe is needed by the API. If null is provided the last 24 hours will be used.
-func (u User) GetSleepSummary(params *SleepSummaryQueryParam) (RawSleepSummaryResponse, error) {
-	sleepSummaryResponse := RawSleepSummaryResponse{}
+func (u User) GetSleepSummary(params *SleepSummaryQueryParam) (SleepSummaryResp, error) {
+	sleepSummaryResponse := SleepSummaryResp{}
 
 	httpClient := u.Client.OAuthConfig.Client(oauth1.NoContext, u.AccessToken)
 
@@ -524,8 +524,8 @@ func (u User) GetSleepSummary(params *SleepSummaryQueryParam) (RawSleepSummaryRe
 }
 
 // CreateNotification creates a new notification.
-func (u User) CreateNotification(params *CreateNotificationParam) (RawCreateNotificationResponse, error) {
-	createNotificationResponse := RawCreateNotificationResponse{}
+func (u User) CreateNotification(params *CreateNotificationParam) (CreateNotificationResp, error) {
+	createNotificationResponse := CreateNotificationResp{}
 
 	httpClient := u.Client.OAuthConfig.Client(oauth1.NoContext, u.AccessToken)
 
@@ -568,8 +568,8 @@ func (u User) CreateNotification(params *CreateNotificationParam) (RawCreateNoti
 }
 
 // ListNotifications lists all the notifications found for the user.
-func (u User) ListNotifications(params *ListNotificationsParam) (RawListNotificationsResponse, error) {
-	listNotificationResponse := RawListNotificationsResponse{}
+func (u User) ListNotifications(params *ListNotificationsParam) (ListNotificationsResp, error) {
+	listNotificationResponse := ListNotificationsResp{}
 
 	httpClient := u.Client.OAuthConfig.Client(oauth1.NoContext, u.AccessToken)
 
@@ -617,8 +617,8 @@ func (u User) ListNotifications(params *ListNotificationsParam) (RawListNotifica
 }
 
 // ListNotifications lists all the notifications found for the user.
-func (u User) GetNotificationInformation(params *NotificationInfoParam) (RawNotificationInfoResponse, error) {
-	notificationInfoResponse := RawNotificationInfoResponse{}
+func (u User) GetNotificationInformation(params *NotificationInfoParam) (NotificationInfoResp, error) {
+	notificationInfoResponse := NotificationInfoResp{}
 
 	httpClient := u.Client.OAuthConfig.Client(oauth1.NoContext, u.AccessToken)
 
@@ -666,8 +666,8 @@ func (u User) GetNotificationInformation(params *NotificationInfoParam) (RawNoti
 }
 
 // RevokeNotification revokes a notification so it no longer sends.
-func (u User) RevokeNotification(params *RevokeNotificationParam) (RawRevokeNotificationResponse, error) {
-	revokeResponse := RawRevokeNotificationResponse{}
+func (u User) RevokeNotification(params *RevokeNotificationParam) (RevokeNotificationResp, error) {
+	revokeResponse := RevokeNotificationResp{}
 
 	httpClient := u.Client.OAuthConfig.Client(oauth1.NoContext, u.AccessToken)
 

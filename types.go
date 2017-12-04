@@ -34,8 +34,8 @@ type RevokeNotificationParam struct {
 	Appli       *int    `json:"appli"`
 }
 
-// RawRevokeNotificationResponse is the response from trying to revoke a notification.
-type RawRevokeNotificationResponse struct {
+// RevokeNotificationResp is the response from trying to revoke a notification.
+type RevokeNotificationResp struct {
 	Status      status.Status `json:"status"`
 	RawResponse []byte
 }
@@ -47,16 +47,16 @@ type NotificationInfoParam struct {
 	Appli       *int    `json:"appli"`
 }
 
-// RawNotificationInfoResponse represents the unmarshelled api reponse for viewing
+// NotificationInfoResp represents the unmarshelled api reponse for viewing
 // a single notification.
-type RawNotificationInfoResponse struct {
-	Status      status.Status                    `json:"status"`
-	Body        *RawNotificationInfoResponseBody `json:"body"`
+type NotificationInfoResp struct {
+	Status      status.Status             `json:"status"`
+	Body        *NotificationInfoRespBody `json:"body"`
 	RawResponse []byte
 }
 
-// RawNotificationInfoResponseBody represents the body of the notification response.
-type RawNotificationInfoResponseBody struct {
+// NotificationInfoRespBody represents the body of the notification response.
+type NotificationInfoRespBody struct {
 	Expires       int64      `json:"expires"`
 	Comment       string     `json:"comment"`
 	ExpiresParsed *time.Time `json:"expiresparsed"`
@@ -68,15 +68,15 @@ type ListNotificationsParam struct {
 	Appli *int `json:"appli"`
 }
 
-// RawListNotificationsResponse represents the unmarshelled api response for listing notifications.
-type RawListNotificationsResponse struct {
-	Status      status.Status                     `json:"status"`
-	Body        *RawListNotificationsResponseBody `json:"body"`
+// ListNotificationsResp represents the unmarshelled api response for listing notifications.
+type ListNotificationsResp struct {
+	Status      status.Status              `json:"status"`
+	Body        *ListNotificationsRespBody `json:"body"`
 	RawResponse []byte
 }
 
-// RawListNotificationsResponseBody represents the notification list body.
-type RawListNotificationsResponseBody struct {
+// ListNotificationsRespBody represents the notification list body.
+type ListNotificationsRespBody struct {
 	Profiles []NotificationProfile `json:"profiles"`
 }
 
@@ -95,8 +95,8 @@ type CreateNotificationParam struct {
 	Appli       int     `json:"appli"`
 }
 
-// RawCreateNotificationResponse provides the response of the create request.
-type RawCreateNotificationResponse struct {
+// CreateNotificationResp provides the response of the create request.
+type CreateNotificationResp struct {
 	Status      status.Status `json:"status"`
 	Error       string        `json:"error"`
 	RawResponse []byte
@@ -121,15 +121,15 @@ type SleepMeasuresQueryParam struct {
 	EndDate   time.Time `json:"enddate"`
 }
 
-// RawSleepSummaryResponse represents the unmarshelled api response for sleep summary.
-type RawSleepSummaryResponse struct {
-	Status      status.Status        `json:"status"`
-	Body        *RawSleepSummaryBody `json:"body"`
+// SleepSummaryResp represents the unmarshelled api response for sleep summary.
+type SleepSummaryResp struct {
+	Status      status.Status     `json:"status"`
+	Body        *SleepSummaryBody `json:"body"`
 	RawResponse []byte
 }
 
-// RawSleepSummaryBody represents the unmarshelled api response for the sleep summary body.
-type RawSleepSummaryBody struct {
+// SleepSummaryBody represents the unmarshelled api response for the sleep summary body.
+type SleepSummaryBody struct {
 	Series []SleepSummary `json:"series"`
 	More   bool           `json:"more"`
 }
@@ -161,15 +161,15 @@ type SleepSummaryData struct {
 	DurationToWakeUp   *int `json:"durationtowakeup`
 }
 
-// RawSleepMeasuresResponse represents the unmarshelled api response for sleep measures.
-type RawSleepMeasuresResponse struct {
-	Status      status.Status                 `json:"status"`
-	Body        *RawSleepMeasuresResponseBody `json:"body"`
+// SleepMeasuresResp represents the unmarshelled api response for sleep measures.
+type SleepMeasuresResp struct {
+	Status      status.Status          `json:"status"`
+	Body        *SleepMeasuresRespBody `json:"body"`
 	RawResponse []byte
 }
 
-// RawSleepMeasuresResponseBody actrepresents the unmarshelled api response for sleep measures body.
-type RawSleepMeasuresResponseBody struct {
+// SleepMeasuresRespBody actrepresents the unmarshelled api response for sleep measures body.
+type SleepMeasuresRespBody struct {
 	Series []SleepMeasure `json:"series"`
 	Model  int            `json:"model"`
 }
@@ -190,15 +190,15 @@ type IntradayActivityQueryParam struct {
 	EndDate   *time.Time `json:"enddate"`
 }
 
-// RawIntradayActivityResponse represents the unmarshelled api response for intraday activities.
-type RawIntradayActivityResponse struct {
-	Status      status.Status                    `json:"status"`
-	Body        *RawIntradayActivityResponseBody `json:"body"`
+// IntradayActivityResp represents the unmarshelled api response for intraday activities.
+type IntradayActivityResp struct {
+	Status      status.Status             `json:"status"`
+	Body        *IntradayActivityRespBody `json:"body"`
 	RawResponse []byte
 }
 
-// RawIntradayActivityResponseBody represents the unmarshelled api response body for intraday activities.
-type RawIntradayActivityResponseBody struct {
+// IntradayActivityRespBody represents the unmarshelled api response body for intraday activities.
+type IntradayActivityRespBody struct {
 	Series map[int64]IntraDayActivity `json:"series"`
 }
 
@@ -221,15 +221,15 @@ type WorkoutsQueryParam struct {
 	EndDateYMD   *time.Time `json:"enddateymd"`
 }
 
-// RawWorkoutResponse represents the unmarshelled api response for workouts.
-type RawWorkoutResponse struct {
-	Status      status.Status           `json:"status"`
-	Body        *RawWorkoutResponseBody `json:"body"`
+// WorkoutResponse represents the unmarshelled api response for workouts.
+type WorkoutResponse struct {
+	Status      status.Status    `json:"status"`
+	Body        *WorkoutRespBody `json:"body"`
 	RawResponse []byte
 }
 
-// RawWorkoutResponseBody represents the unmarshelled body of the workout api resposne.
-type RawWorkoutResponseBody struct {
+// WorkoutRespBody represents the unmarshelled body of the workout api resposne.
+type WorkoutRespBody struct {
 	Series []Workout `json:"series"`
 }
 
@@ -253,33 +253,34 @@ type Workout struct {
 	DateParsed      *time.Time               `json:"dateparsed"`
 }
 
-// ActivityMeasureQueryParam acts as the config parameter for activity measurement queries.
+// ActivityMeasuresQueryParam acts as the config parameter for activity measurement queries.
 // All options feilds can be set to null but at least one of the date fields need to be
 // specified or the API will fail. Additionally there is no ParseResponse option as
 // there is no need to because the activities response doesn't need further parsing.
-type ActivityMeasureQueryParam struct {
-	UserId       int        `json:"userid"`
-	Date         *time.Time `json:"date"`
-	StartDateYMD *time.Time `json:"startdateymd"`
-	EndDateYMD   *time.Time `json:"enddateymd"`
-	LasteUpdate  *time.Time `json:"lastupdate"`
-	Offset       *int       `json:"offset"`
+type ActivityMeasuresQueryParam struct {
+	UserId           int        `json:"userid"`
+	Date             *time.Time `json:"date"`
+	StartDateYMD     *time.Time `json:"startdateymd"`
+	EndDateYMD       *time.Time `json:"enddateymd"`
+	LasteUpdate      *time.Time `json:"lastupdate"`
+	Offset           *int       `json:"offset"`
+	DisableDateParse bool       `json:"diabledateparse"`
 }
 
-// RawActivitiesMeasureResponse contains the unmarshalled response from the api.
+// ActivitiesMeasureResp contains the unmarshalled response from the api.
 // If the client has been set to include raw respeonse the RawResponse byte slice
 // will be populated with raw bytes returned by the API.
-type RawActivitiesMeasuresResponse struct {
-	Status      status.Status                      `json:"status"`
-	Body        *RawActivitiesMeasuresResponseBody `json:"body"`
+type ActivitiesMeasuresResp struct {
+	Status      status.Status               `json:"status"`
+	Body        *ActivitiesMeasuresRespBody `json:"body"`
 	RawResponse []byte
 }
 
-// RawActivitiesMeasuresResponseBody contains the response body as provided by the
+// ActivitiesMeasuresRespBody contains the response body as provided by the
 // api. The Nokia Health API includes single values responses directly in the
 // body. As such they are all pointers. You may check SingleValue to determine
 // if a single value was provided.
-type RawActivitiesMeasuresResponseBody struct {
+type ActivitiesMeasuresRespBody struct {
 	ParsedDate  *time.Time `json:"parseddate`
 	Date        *string    `json:"date"`
 	Steps       *float64   `json:"steps"`
@@ -328,39 +329,39 @@ type BodyMeasuresQueryParams struct {
 	ParseResponse bool
 }
 
-// RawBodyMeasuresResponse contains the unmarshalled response from the api.
+// BodyMeasuresResp contains the unmarshalled response from the api.
 // If the client has been set to include raw respeonse the RawResponse byte slice
 // will be populated with raw bytes returned by the API.
-type RawBodyMeasuresResponse struct {
-	Status         status.Status               `json:"status"`
-	Body           *RawBodyMeasureResponseBody `json:"body"`
+type BodyMeasuresResp struct {
+	Status         status.Status        `json:"status"`
+	Body           *BodyMeasureRespBody `json:"body"`
 	RawResponse    []byte
 	ParsedResponse *BodyMeasures
 }
 
-// RawBodyMeasureResponseBody represents the body portion of the body measure response.
+// BodyMeasureRespBody represents the body portion of the body measure response.
 // The body portion is not required and thus this may not be found in the response
 // object.
-type RawBodyMeasureResponseBody struct {
-	Updatetime  int64                      `json:"updatetime"`
-	More        int                        `json:"more"`
-	Timezone    string                     `json:"timezone"`
-	MeasureGrps []BodyMeasureGroupResponse `json:"measuregrps"`
+type BodyMeasureRespBody struct {
+	Updatetime  int64                  `json:"updatetime"`
+	More        int                    `json:"more"`
+	Timezone    string                 `json:"timezone"`
+	MeasureGrps []BodyMeasureGroupResp `json:"measuregrps"`
 }
 
-// BodyMeasureGroupResponse is a single body measurment group as found in the resposne.
+// BodyMeasureGroupResp is a single body measurment group as found in the resposne.
 // Each group has a set of measures that can then be parsed manually or via the
 // Parse method on BodyMeasuresQueryParams.
-type BodyMeasureGroupResponse struct {
-	GrpID    int                    `json:"grpid"`
-	Attrib   int                    `json:"attrib"`
-	Date     int64                  `json:"date"`
-	Category int                    `json:"category"`
-	Measures []BodyMeasuresResponse `json:"measures"`
+type BodyMeasureGroupResp struct {
+	GrpID    int                   `json:"grpid"`
+	Attrib   int                   `json:"attrib"`
+	Date     int64                 `json:"date"`
+	Category int                   `json:"category"`
+	Measures []BodyMeasuresMeasure `json:"measures"`
 }
 
 // MeasureResponse is a single body measure found in the response.
-type BodyMeasuresResponse struct {
+type BodyMeasuresMeasure struct {
 	Value int               `json:"value"`
 	Type  meastype.MeasType `json:"type"`
 	Unit  int               `json:"unit"`
@@ -499,7 +500,7 @@ type BodyMeasures struct {
 
 // ParseData parses all the data provided into buckets of each type of
 // measurement. It also performs the nessasary date and unit conversion.
-func (rm RawBodyMeasuresResponse) ParseData() *BodyMeasures {
+func (rm BodyMeasuresResp) ParseData() *BodyMeasures {
 	bm := BodyMeasures{}
 
 	if rm.Body != nil {
