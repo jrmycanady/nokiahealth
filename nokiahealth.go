@@ -119,9 +119,9 @@ func (ar AccessRequest) GenerateUser(verifier string, userID int) (User, error) 
 	return u, nil
 }
 
-// GetIntradayActivities retreieves intraday activites from the API. Special permissions provided by
+// GetIntradayActivity retreieves intraday activites from the API. Special permissions provided by
 // Nokia Health are required to use this resource.
-func (u User) GetIntradayActivities(params *IntradayActivityQueryParam) (RawIntradayActivityResponse, error) {
+func (u User) GetIntradayActivity(params *IntradayActivityQueryParam) (RawIntradayActivityResponse, error) {
 	intraDayActivityResponse := RawIntradayActivityResponse{}
 
 	httpClient := u.Client.OAuthConfig.Client(oauth1.NoContext, u.AccessToken)
@@ -319,9 +319,9 @@ func (u User) GetWorkouts(params *WorkoutsQueryParam) (RawWorkoutResponse, error
 
 }
 
-// GetBodyMeasure retrieves the body measurements as specified by the config
+// GetBodyMeasures retrieves the body measurements as specified by the config
 // provided.
-func (u User) GetBodyMeasure(params *BodyMeasuresQueryParams) (RawBodyMeasuresResponse, error) {
+func (u User) GetBodyMeasures(params *BodyMeasuresQueryParams) (RawBodyMeasuresResponse, error) {
 	bodyMeasureResponse := RawBodyMeasuresResponse{}
 
 	httpClient := u.Client.OAuthConfig.Client(oauth1.NoContext, u.AccessToken)
@@ -387,10 +387,10 @@ func (u User) GetBodyMeasure(params *BodyMeasuresQueryParams) (RawBodyMeasuresRe
 
 }
 
-// GetSleepMeasure retrieves the sleep measurements as specified by the config
+// GetSleepMeasures retrieves the sleep measurements as specified by the config
 // provided. Start and end dates are requires so if the param is not provided
 // one is generated for the past 24 hour timeframe.
-func (u User) GetSleepMeasure(params *SleepMeasuresQueryParam) (RawSleepMeasuresResponse, error) {
+func (u User) GetSleepMeasures(params *SleepMeasuresQueryParam) (RawSleepMeasuresResponse, error) {
 	sleepMeasureRepsonse := RawSleepMeasuresResponse{}
 
 	httpClient := u.Client.OAuthConfig.Client(oauth1.NoContext, u.AccessToken)

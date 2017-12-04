@@ -33,7 +33,7 @@ func LoadConfig() error {
 
 var tc TestConfig
 
-func TestGetBodyMeasure(t *testing.T) {
+func TestGetBodyMeasures(t *testing.T) {
 	err := LoadConfig()
 	if err != nil {
 		t.Fatal("Failed to load config file.")
@@ -54,7 +54,7 @@ func TestGetBodyMeasure(t *testing.T) {
 		EndDate:   &endDate,
 	}
 
-	m, err := u.GetBodyMeasure(&p)
+	m, err := u.GetBodyMeasures(&p)
 	if err != nil {
 		t.Fatalf("failed to get body measurements: %v", err)
 	}
@@ -87,7 +87,7 @@ func TestGetActivityMeasures(t *testing.T) {
 	}
 }
 
-func TestGetIntradayActivities(t *testing.T) {
+func TestGetIntradayActivity(t *testing.T) {
 	err := LoadConfig()
 	if err != nil {
 		t.Fatal("Failed to load config file.")
@@ -100,7 +100,7 @@ func TestGetIntradayActivities(t *testing.T) {
 	// Build the user
 	u := c.GenerateUser(tc.UserToken, tc.UserSecret, tc.UserID)
 
-	m, err := u.GetIntradayActivities(nil)
+	m, err := u.GetIntradayActivity(nil)
 	if err != nil {
 		t.Fatalf("failed to get body measurements: %v", err)
 	}
@@ -133,7 +133,7 @@ func TestGetWorkouts(t *testing.T) {
 	}
 }
 
-func TestGetSleepMeasure(t *testing.T) {
+func TestGetSleepMeasures(t *testing.T) {
 	err := LoadConfig()
 	if err != nil {
 		t.Fatal("Failed to load config file.")
@@ -146,7 +146,7 @@ func TestGetSleepMeasure(t *testing.T) {
 	// Build the user
 	u := c.GenerateUser(tc.UserToken, tc.UserSecret, tc.UserID)
 
-	m, err := u.GetSleepMeasure(nil)
+	m, err := u.GetSleepMeasures(nil)
 	if err != nil {
 		t.Fatalf("failed to get body measurements: %v", err)
 	}
