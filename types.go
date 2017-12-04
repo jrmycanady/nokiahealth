@@ -38,6 +38,7 @@ type RevokeNotificationParam struct {
 type RevokeNotificationResp struct {
 	Status      status.Status `json:"status"`
 	RawResponse []byte
+	Path        string
 }
 
 // NotificationInfoParam provides the query parameters nessasary to retrieve
@@ -53,6 +54,7 @@ type NotificationInfoResp struct {
 	Status      status.Status             `json:"status"`
 	Body        *NotificationInfoRespBody `json:"body"`
 	RawResponse []byte
+	Path        string
 }
 
 // NotificationInfoRespBody represents the body of the notification response.
@@ -73,6 +75,7 @@ type ListNotificationsResp struct {
 	Status      status.Status              `json:"status"`
 	Body        *ListNotificationsRespBody `json:"body"`
 	RawResponse []byte
+	Path        string
 }
 
 // ListNotificationsRespBody represents the notification list body.
@@ -100,6 +103,7 @@ type CreateNotificationResp struct {
 	Status      status.Status `json:"status"`
 	Error       string        `json:"error"`
 	RawResponse []byte
+	Path        string
 }
 
 // SleepSummaryQueryParam provides the query parameters for requests of sleep
@@ -126,6 +130,7 @@ type SleepSummaryResp struct {
 	Status      status.Status     `json:"status"`
 	Body        *SleepSummaryBody `json:"body"`
 	RawResponse []byte
+	Path        string
 }
 
 // SleepSummaryBody represents the unmarshelled api response for the sleep summary body.
@@ -166,6 +171,7 @@ type SleepMeasuresResp struct {
 	Status      status.Status          `json:"status"`
 	Body        *SleepMeasuresRespBody `json:"body"`
 	RawResponse []byte
+	Path        string
 }
 
 // SleepMeasuresRespBody actrepresents the unmarshelled api response for sleep measures body.
@@ -195,6 +201,7 @@ type IntradayActivityResp struct {
 	Status      status.Status             `json:"status"`
 	Body        *IntradayActivityRespBody `json:"body"`
 	RawResponse []byte
+	Path        string
 }
 
 // IntradayActivityRespBody represents the unmarshelled api response body for intraday activities.
@@ -226,6 +233,7 @@ type WorkoutResponse struct {
 	Status      status.Status    `json:"status"`
 	Body        *WorkoutRespBody `json:"body"`
 	RawResponse []byte
+	Path        string
 }
 
 // WorkoutRespBody represents the unmarshelled body of the workout api resposne.
@@ -274,6 +282,7 @@ type ActivitiesMeasuresResp struct {
 	Status      status.Status               `json:"status"`
 	Body        *ActivitiesMeasuresRespBody `json:"body"`
 	RawResponse []byte
+	Path        string
 }
 
 // ActivitiesMeasuresRespBody contains the response body as provided by the
@@ -336,6 +345,7 @@ type BodyMeasuresResp struct {
 	Status         status.Status        `json:"status"`
 	Body           *BodyMeasureRespBody `json:"body"`
 	RawResponse    []byte
+	Path           string
 	ParsedResponse *BodyMeasures
 }
 

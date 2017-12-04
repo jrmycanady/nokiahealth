@@ -37,6 +37,7 @@ var NokiaHealthEndpoint = oauth1.Endpoint{
 type Client struct {
 	OAuthConfig     oauth1.Config
 	SaveRawResponse bool
+	IncludePath     bool
 }
 
 // NewClient creates a new client using the consumer information provided. The
@@ -141,6 +142,9 @@ func (u User) GetIntradayActivity(params *IntradayActivityQueryParam) (IntradayA
 	}
 
 	path := fmt.Sprintf("%s?%s", getIntradayActivitiesURL, v.Encode())
+	if u.Client.IncludePath {
+		intraDayActivityResponse.Path = path
+	}
 
 	resp, err := httpClient.Get(path)
 	if err != nil {
@@ -192,6 +196,9 @@ func (u User) GetActivityMeasures(params *ActivityMeasuresQueryParam) (Activitie
 	}
 
 	path := fmt.Sprintf("%s?%s", getActivityMeasuresURL, v.Encode())
+	if u.Client.IncludePath {
+		activityMeasureResponse.Path = path
+	}
 
 	resp, err := httpClient.Get(path)
 	if err != nil {
@@ -270,6 +277,9 @@ func (u User) GetWorkouts(params *WorkoutsQueryParam) (WorkoutResponse, error) {
 	}
 
 	path := fmt.Sprintf("%s?%s", getWorkoutsURL, v.Encode())
+	if u.Client.IncludePath {
+		workoutResponse.Path = path
+	}
 
 	resp, err := httpClient.Get(path)
 	if err != nil {
@@ -359,6 +369,9 @@ func (u User) GetBodyMeasures(params *BodyMeasuresQueryParams) (BodyMeasuresResp
 	}
 
 	path := fmt.Sprintf("%s?%s", getBodyMeasureURL, v.Encode())
+	if u.Client.IncludePath {
+		bodyMeasureResponse.Path = path
+	}
 
 	resp, err := httpClient.Get(path)
 	if err != nil {
@@ -412,6 +425,9 @@ func (u User) GetSleepMeasures(params *SleepMeasuresQueryParam) (SleepMeasuresRe
 	v.Add(GetFieldName(*params, "EndDate"), strconv.FormatInt(params.EndDate.Unix(), 10))
 
 	path := fmt.Sprintf("%s?%s", getSleepMeasureURL, v.Encode())
+	if u.Client.IncludePath {
+		sleepMeasureRepsonse.Path = path
+	}
 
 	resp, err := httpClient.Get(path)
 	if err != nil {
@@ -473,6 +489,9 @@ func (u User) GetSleepSummary(params *SleepSummaryQueryParam) (SleepSummaryResp,
 	v.Add(GetFieldName(*params, "EndDateYMD"), params.EndDateYMD.Format("2006-01-02"))
 
 	path := fmt.Sprintf("%s?%s", getSleepSummaryURL, v.Encode())
+	if u.Client.IncludePath {
+		sleepSummaryResponse.Path = path
+	}
 
 	resp, err := httpClient.Get(path)
 	if err != nil {
@@ -544,6 +563,9 @@ func (u User) CreateNotification(params *CreateNotificationParam) (CreateNotific
 	v.Add(GetFieldName(*params, "Appli"), strconv.Itoa(params.Appli))
 
 	path := fmt.Sprintf("%s?%s", createNotficationURL, v.Encode())
+	if u.Client.IncludePath {
+		createNotificationResponse.Path = path
+	}
 
 	resp, err := httpClient.Get(path)
 	if err != nil {
@@ -585,6 +607,9 @@ func (u User) ListNotifications(params *ListNotificationsParam) (ListNotificatio
 	}
 
 	path := fmt.Sprintf("%s?%s", listNotificationsURL, v.Encode())
+	if u.Client.IncludePath {
+		listNotificationResponse.Path = path
+	}
 
 	resp, err := httpClient.Get(path)
 	if err != nil {
@@ -616,7 +641,7 @@ func (u User) ListNotifications(params *ListNotificationsParam) (ListNotificatio
 	return listNotificationResponse, nil
 }
 
-// ListNotifications lists all the notifications found for the user.
+// GetNotificationInformation lists all the notifications found for the user.
 func (u User) GetNotificationInformation(params *NotificationInfoParam) (NotificationInfoResp, error) {
 	notificationInfoResponse := NotificationInfoResp{}
 
@@ -635,6 +660,9 @@ func (u User) GetNotificationInformation(params *NotificationInfoParam) (Notific
 	v.Add(GetFieldName(*params, "Appli"), strconv.Itoa(*params.Appli))
 
 	path := fmt.Sprintf("%s?%s", getNotificationInformationURL, v.Encode())
+	if u.Client.IncludePath {
+		notificationInfoResponse.Path = path
+	}
 
 	resp, err := httpClient.Get(path)
 	if err != nil {
@@ -684,6 +712,9 @@ func (u User) RevokeNotification(params *RevokeNotificationParam) (RevokeNotific
 	v.Add(GetFieldName(*params, "Appli"), strconv.Itoa(*params.Appli))
 
 	path := fmt.Sprintf("%s?%s", revokeNotificationURL, v.Encode())
+	if u.Client.IncludePath {
+		revokeResponse.Path = path
+	}
 
 	resp, err := httpClient.Get(path)
 	if err != nil {
