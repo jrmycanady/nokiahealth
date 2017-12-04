@@ -104,5 +104,4 @@
 // storing the access request token and secret somewhere. Both of which are
 // public fields on the AccessRequest struct.
 //  ar := client.RebuildAccessReuqest("token", "secret")
-
 package nokiahealth
