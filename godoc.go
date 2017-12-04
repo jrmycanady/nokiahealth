@@ -4,7 +4,7 @@
 // includes everything from user access token generation to retreiving
 // body measurments and setting up notifications.
 //
-// Due to limitEd access of Nokia Health devices, testing of each
+// Due to limited access of Nokia Health devices, testing of each
 // resource has been limited. If you have access to more data or run into
 // any bugs/missing features, please place an issue on github at
 // https://github.com/jrmycanady/nokiahealth. The API documentation has been
