@@ -70,7 +70,7 @@ type AccessRequest struct {
 // RebuildAccessRequest builds an access request from a known
 // secret and token. This is generally used to generate a user
 // when receiving a callback.
-func (c Client) RebuildAccessReuqest(token string, secret string) AccessRequest {
+func (c Client) RebuildAccessRequest(token string, secret string) AccessRequest {
 	ar := AccessRequest{
 		Client:        c,
 		RequestToken:  token,
