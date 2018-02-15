@@ -406,7 +406,7 @@ func (u User) GetBodyMeasures(params *BodyMeasuresQueryParams) (BodyMeasuresResp
 		return bodyMeasureResponse, err
 	}
 
-	if params.ParseResponse {
+	if params != nil && params.ParseResponse {
 		bodyMeasureResponse.ParsedResponse = bodyMeasureResponse.ParseData()
 	}
 
