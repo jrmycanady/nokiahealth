@@ -1,14 +1,14 @@
 // Package nokiahealth is a client library for for working with the Nokia
 // Health (Withings) API. It includes support for all resources listed on the public
 // api documentation at https://developer.health.nokia.com/api/doc. This
-// includes everything from user access token generation to retreiving
-// body measurments and setting up notifications.
+// includes everything from user access token generation to retrieving
+// body measurements and setting up notifications.
 //
 // Due to limited access of Nokia Health devices, testing of each
 // resource has been limited. If you have access to more data or run into
 // any bugs/missing features, please place an issue on github at
 // https://github.com/jrmycanady/nokiahealth. The API documentation has been
-// found to be severly lacking or compeltely incorrect so oddities are
+// found to be severly lacking or completely incorrect so oddities are
 // expected to be found. Most are easily fixed as long as the raw request data
 // can be provided.
 //
@@ -41,9 +41,9 @@
 //   client := nokiahealth.NewClient("consumer_key","consumer_secret", "callback_url")
 // The client can be used to handle user authorization as well as generate
 // user structs from stores user authorization tokens. Details of that can be
-// found in the authorization section. The following is an examle of creating
+// found in the authorization section. The following is an example of creating
 // a user from known tokens and secrets. All three parameters are required as
-// the API doesn't rely on just the user_tokent to identify the user.
+// the API doesn't rely on just the user_token to identify the user.
 //   user := client.GenerateUser("user_token", "user_secret", "user_id")
 // With the user defined API calls can be made by utilizing on of the methods
 // for the User struct. i.e.
@@ -54,7 +54,7 @@
 // and how to use these parameters. https://developer.health.nokia.com/api/doc.
 // Each param type is specific to the request type.
 //
-// Each method varies somewhat in the foramt it returns due to the inconsistencies
+// Each method varies somewhat in the format it returns due to the inconsistencies
 // in the Nokia Health API. This package does what it can to work around
 // these inconsistencies but you should refer to the documentation for each
 // method for more information. The one commonality is that the package does
@@ -100,10 +100,10 @@
 // a different process or the original access request struct is not available.
 // In such a case the generate user cannot be used which means you cannot
 // obtain the secret. In those cases you can rebuild an access request token
-// using the RebuildAccessReuqest() method of the client. This still requires
+// using the RebuildAccessRequest() method of the client. This still requires
 // storing the access request token and secret somewhere. Both of which are
 // public fields on the AccessRequest struct.
-//  ar := client.RebuildAccessReuqest("token", "secret")
+//  ar := client.RebuildAccessRequest("token", "secret")
 //
 // Debug / Testing Client Options
 //

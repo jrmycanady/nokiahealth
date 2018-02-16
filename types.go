@@ -163,7 +163,7 @@ type SleepSummaryData struct {
 	REMSleepDuration   *int `json:"remsleepduration"`
 	WakeUpCount        int  `json:"wakeupcount"`
 	DurationToSleep    int  `json:"durationtosleep"`
-	DurationToWakeUp   *int `json:"durationtowakeup`
+	DurationToWakeUp   *int `json:"durationtowakeup"`
 }
 
 // SleepMeasuresResp represents the unmarshelled api response for sleep measures.
@@ -290,7 +290,7 @@ type ActivitiesMeasuresResp struct {
 // body. As such they are all pointers. You may check SingleValue to determine
 // if a single value was provided.
 type ActivitiesMeasuresRespBody struct {
-	ParsedDate  *time.Time `json:"parseddate`
+	ParsedDate  *time.Time `json:"parseddate"`
 	Date        *string    `json:"date"`
 	Steps       *float64   `json:"steps"`
 	Distance    *float64   `json:"distance"`
@@ -308,7 +308,7 @@ type ActivitiesMeasuresRespBody struct {
 
 // Activity represents an activity as recorded by Nokia Health.
 type Activity struct {
-	ParsedDate *time.Time `json:"parseddate`
+	ParsedDate *time.Time `json:"parseddate"`
 	Date       string     `json:"date"`
 	Steps      float64    `json:"steps"`
 	Distance   float64    `json:"distance"`
@@ -334,7 +334,7 @@ type BodyMeasuresQueryParams struct {
 	MeasType      *meastype.MeasType `json:"meastype"`
 	Category      *int               `json:"category"`
 	Limit         *int               `json:"limit"`
-	Offset        *int               `json:'offset"`
+	Offset        *int               `json:"offset"`
 	ParseResponse bool
 }
 
