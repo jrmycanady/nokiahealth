@@ -28,7 +28,7 @@ func GetFieldName(s interface{}, name string) string {
 	return tag
 }
 
-// RevokeNotification provides the query parameters nessasry to revoke a notification.
+// RevokeNotificationParam provides the query parameters nessasry to revoke a notification.
 type RevokeNotificationParam struct {
 	CallbackURL url.URL `json:"callbackurl"`
 	Appli       *int    `json:"appli"`
@@ -120,7 +120,7 @@ type SleepSummaryQueryParam struct {
 
 // SleepMeasuresQueryParam acts as the config parameter for sleep measures requests.
 type SleepMeasuresQueryParam struct {
-	UserId    int       `json:"userid"`
+	UserID    int       `json:"userid"`
 	StartDate time.Time `json:"startdate"`
 	EndDate   time.Time `json:"enddate"`
 }
@@ -141,17 +141,17 @@ type SleepSummaryBody struct {
 
 // SleepSummary is a summary of one sleep entry.
 type SleepSummary struct {
-	ID              int64              `json:"id"`
-	StartDate       int64              `json:"startdate"`
-	EndDate         int64              `json:"enddate"`
-	Date            string             `json:"date"`
-	TimeZone        string             `json:"timezone"`
-	Model           int                `json:"model"`
-	Data            []SleepSummaryData `json:"data"`
-	Modified        int64              `json:"modified"`
-	StartDateParsed *time.Time         `json:"startdateparsed"`
-	EndDateParsed   *time.Time         `json:"enddateparsed"`
-	DateParsed      *time.Time         `json:"dateparsed"`
+	ID              int64            `json:"id"`
+	StartDate       int64            `json:"startdate"`
+	EndDate         int64            `json:"enddate"`
+	Date            string           `json:"date"`
+	TimeZone        string           `json:"timezone"`
+	Model           int              `json:"model"`
+	Data            SleepSummaryData `json:"data"`
+	Modified        int64            `json:"modified"`
+	StartDateParsed *time.Time       `json:"startdateparsed"`
+	EndDateParsed   *time.Time       `json:"enddateparsed"`
+	DateParsed      *time.Time       `json:"dateparsed"`
 }
 
 // SleepSummaryData contains the summary data for the sleep summary. Not all fields are required
@@ -191,7 +191,7 @@ type SleepMeasure struct {
 
 // IntradayActivityQueryParam acts as the config parameter for intraday activity retrieval requests.
 type IntradayActivityQueryParam struct {
-	UserId    int        `json:"userid"`
+	UserID    int        `json:"userid"`
 	StartDate *time.Time `json:"startdate"`
 	EndDate   *time.Time `json:"enddate"`
 }
@@ -223,7 +223,7 @@ type IntraDayActivity struct {
 
 // WorkoutsQueryParam acts as the config parameter for workout retrieval requests.
 type WorkoutsQueryParam struct {
-	UserId       int        `json:"userid"`
+	UserID       int        `json:"userid"`
 	StartDateYMD *time.Time `json:"startdateymd"`
 	EndDateYMD   *time.Time `json:"enddateymd"`
 }
@@ -266,7 +266,7 @@ type Workout struct {
 // specified or the API will fail. Additionally there is no ParseResponse option as
 // there is no need to because the activities response doesn't need further parsing.
 type ActivityMeasuresQueryParam struct {
-	UserId           int        `json:"userid"`
+	UserID           int        `json:"userid"`
 	Date             *time.Time `json:"date"`
 	StartDateYMD     *time.Time `json:"startdateymd"`
 	EndDateYMD       *time.Time `json:"enddateymd"`
@@ -275,7 +275,7 @@ type ActivityMeasuresQueryParam struct {
 	DisableDateParse bool       `json:"diabledateparse"`
 }
 
-// ActivitiesMeasureResp contains the unmarshalled response from the api.
+// ActivitiesMeasuresResp contains the unmarshalled response from the api.
 // If the client has been set to include raw respeonse the RawResponse byte slice
 // will be populated with raw bytes returned by the API.
 type ActivitiesMeasuresResp struct {
@@ -370,7 +370,7 @@ type BodyMeasureGroupResp struct {
 	Measures []BodyMeasuresMeasure `json:"measures"`
 }
 
-// MeasureResponse is a single body measure found in the response.
+// BodyMeasuresMeasure is a single body measure found in the response.
 type BodyMeasuresMeasure struct {
 	Value int               `json:"value"`
 	Type  meastype.MeasType `json:"type"`
