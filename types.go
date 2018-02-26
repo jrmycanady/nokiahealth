@@ -141,17 +141,17 @@ type SleepSummaryBody struct {
 
 // SleepSummary is a summary of one sleep entry.
 type SleepSummary struct {
-	ID              int64              `json:"id"`
-	StartDate       int64              `json:"startdate"`
-	EndDate         int64              `json:"enddate"`
-	Date            string             `json:"date"`
-	TimeZone        string             `json:"timezone"`
-	Model           int                `json:"model"`
-	Data            []SleepSummaryData `json:"data"`
-	Modified        int64              `json:"modified"`
-	StartDateParsed *time.Time         `json:"startdateparsed"`
-	EndDateParsed   *time.Time         `json:"enddateparsed"`
-	DateParsed      *time.Time         `json:"dateparsed"`
+	ID              int64            `json:"id"`
+	StartDate       int64            `json:"startdate"`
+	EndDate         int64            `json:"enddate"`
+	Date            string           `json:"date"`
+	TimeZone        string           `json:"timezone"`
+	Model           int              `json:"model"`
+	Data            SleepSummaryData `json:"data"`
+	Modified        int64            `json:"modified"`
+	StartDateParsed *time.Time       `json:"startdateparsed"`
+	EndDateParsed   *time.Time       `json:"enddateparsed"`
+	DateParsed      *time.Time       `json:"dateparsed"`
 }
 
 // SleepSummaryData contains the summary data for the sleep summary. Not all fields are required
