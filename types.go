@@ -120,7 +120,7 @@ type SleepSummaryQueryParam struct {
 
 // SleepMeasuresQueryParam acts as the config parameter for sleep measures requests.
 type SleepMeasuresQueryParam struct {
-	UserId    int       `json:"userid"`
+	UserID    int       `json:"userid"`
 	StartDate time.Time `json:"startdate"`
 	EndDate   time.Time `json:"enddate"`
 }
@@ -191,7 +191,7 @@ type SleepMeasure struct {
 
 // IntradayActivityQueryParam acts as the config parameter for intraday activity retrieval requests.
 type IntradayActivityQueryParam struct {
-	UserId    int        `json:"userid"`
+	UserID    int        `json:"userid"`
 	StartDate *time.Time `json:"startdate"`
 	EndDate   *time.Time `json:"enddate"`
 }
@@ -223,7 +223,7 @@ type IntraDayActivity struct {
 
 // WorkoutsQueryParam acts as the config parameter for workout retrieval requests.
 type WorkoutsQueryParam struct {
-	UserId       int        `json:"userid"`
+	UserID       int        `json:"userid"`
 	StartDateYMD *time.Time `json:"startdateymd"`
 	EndDateYMD   *time.Time `json:"enddateymd"`
 }
@@ -266,7 +266,7 @@ type Workout struct {
 // specified or the API will fail. Additionally there is no ParseResponse option as
 // there is no need to because the activities response doesn't need further parsing.
 type ActivityMeasuresQueryParam struct {
-	UserId           int        `json:"userid"`
+	UserID           int        `json:"userid"`
 	Date             *time.Time `json:"date"`
 	StartDateYMD     *time.Time `json:"startdateymd"`
 	EndDateYMD       *time.Time `json:"enddateymd"`
