@@ -28,7 +28,7 @@ func GetFieldName(s interface{}, name string) string {
 	return tag
 }
 
-// RevokeNotification provides the query parameters nessasry to revoke a notification.
+// RevokeNotificationParam provides the query parameters nessasry to revoke a notification.
 type RevokeNotificationParam struct {
 	CallbackURL url.URL `json:"callbackurl"`
 	Appli       *int    `json:"appli"`
@@ -275,7 +275,7 @@ type ActivityMeasuresQueryParam struct {
 	DisableDateParse bool       `json:"diabledateparse"`
 }
 
-// ActivitiesMeasureResp contains the unmarshalled response from the api.
+// ActivitiesMeasuresResp contains the unmarshalled response from the api.
 // If the client has been set to include raw respeonse the RawResponse byte slice
 // will be populated with raw bytes returned by the API.
 type ActivitiesMeasuresResp struct {
@@ -370,7 +370,7 @@ type BodyMeasureGroupResp struct {
 	Measures []BodyMeasuresMeasure `json:"measures"`
 }
 
-// MeasureResponse is a single body measure found in the response.
+// BodyMeasuresMeasure is a single body measure found in the response.
 type BodyMeasuresMeasure struct {
 	Value int               `json:"value"`
 	Type  meastype.MeasType `json:"type"`
