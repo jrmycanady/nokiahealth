@@ -2,8 +2,7 @@
 
 This is a go client that allows easy access to the Nokia Health API (https://developer.health.nokia.com/api/doc). More detailed documentation can be found in the godocs (https://godoc.org/github.com/jrmycanady/nokiahealth).
 
-**NOTICE** - Looking for users with data from various withings devices. Currently only testing against an account with a withings scale. The API documentation is very sketchy and testing against real data may find more issues.
-
+**NOTICE** - On November 30th the Nokia Health API is changing to Oauth 2.0 only. I plan to update the client to support the new requiremetn but that has not been done. 
 
 ## OAuth Notes
 
