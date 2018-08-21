@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jrmycanady/nokiahealth/enum/status"
@@ -30,9 +31,10 @@ const (
 	revokeNotificationURL         = "https://api.health.nokia.com/notify"
 )
 
+// Scope defines the types of scopes accepted by the API.
 type Scope string
 
-const(
+const (
 	// ScopeUserMetrics provides access to the Getmeas actions.
 	ScopeUserMetrics Scope = "user.metrics"
 	// ScopeUserInfo provides access to the user information.
@@ -84,8 +86,8 @@ func NewClient(clientID string, clientSecret string, redirectURL string) Client 
 // SetScope allows for setting the scope of the client which is used during
 // authorization requests for new users. By default the scope will be all
 // scopes. This is also not thread safe.
-func (c *Client) SetScope(scopes ...Scope) {
-	c.OAuth2Config.Scopes = strings.join(scopes, ",")
+func (c *Client) SetScope(scopes ...string) {
+	c.OAuth2Config.Scopes = []string{strings.Join([]string(scopes), ",")}
 }
 
 // getContext returns a context set to time out after the duration specified
