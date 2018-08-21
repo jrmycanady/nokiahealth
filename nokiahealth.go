@@ -149,7 +149,7 @@ func (u User) GetIntradayActivity(params *IntradayActivityQueryParam) (IntradayA
 func (u User) GetIntradayActivityCtx(ctx context.Context, params *IntradayActivityQueryParam) (IntradayActivityResp, error) {
 	intraDayActivityResponse := IntradayActivityResp{}
 
-	// Build query params
+	// Building query params
 	v := url.Values{}
 	t, err := u.Token.Token()
 	if err != nil {
@@ -167,6 +167,7 @@ func (u User) GetIntradayActivityCtx(ctx context.Context, params *IntradayActivi
 		}
 	}
 
+	// Sending request to the API.
 	path := fmt.Sprintf("%s?%s", getIntradayActivitiesURL, v.Encode())
 	if u.Client.IncludePath {
 		intraDayActivityResponse.Path = path
@@ -182,8 +183,9 @@ func (u User) GetIntradayActivityCtx(ctx context.Context, params *IntradayActivi
 	if err != nil {
 		return intraDayActivityResponse, err
 	}
-
 	defer resp.Body.Close()
+
+	// Processing API response.
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return intraDayActivityResponse, err
@@ -195,6 +197,9 @@ func (u User) GetIntradayActivityCtx(ctx context.Context, params *IntradayActivi
 	err = json.Unmarshal(body, &intraDayActivityResponse)
 	if err != nil {
 		return intraDayActivityResponse, err
+	}
+	if intraDayActivityResponse.Status != status.OperationWasSuccessful {
+		return intraDayActivityResponse, fmt.Errorf("api returned an error: %s", intraDayActivityResponse.Error)
 	}
 
 	return intraDayActivityResponse, nil
@@ -213,7 +218,7 @@ func (u User) GetActivityMeasures(params *ActivityMeasuresQueryParam) (Activitie
 func (u User) GetActivityMeasuresCtx(ctx context.Context, params *ActivityMeasuresQueryParam) (ActivitiesMeasuresResp, error) {
 	activityMeasureResponse := ActivitiesMeasuresResp{}
 
-	// Build query params
+	// Building the query params
 	v := url.Values{}
 
 	t, err := u.Token.Token()
@@ -247,15 +252,11 @@ func (u User) GetActivityMeasuresCtx(ctx context.Context, params *ActivityMeasur
 
 	}
 
+	// Sending request to the API.
 	path := fmt.Sprintf("%s?%s", getActivityMeasuresURL, v.Encode())
 	if u.Client.IncludePath {
 		activityMeasureResponse.Path = path
 	}
-
-	// resp, err := u.HTTPClient.Get(path)
-	// if err != nil {
-	// 	return activityMeasureResponse, err
-	// }
 
 	req, err := http.NewRequest("GET", path, nil)
 	req = req.WithContext(ctx)
@@ -267,8 +268,9 @@ func (u User) GetActivityMeasuresCtx(ctx context.Context, params *ActivityMeasur
 	if err != nil {
 		return activityMeasureResponse, err
 	}
-
 	defer resp.Body.Close()
+
+	// Processing API response.
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return activityMeasureResponse, err
@@ -283,10 +285,8 @@ func (u User) GetActivityMeasuresCtx(ctx context.Context, params *ActivityMeasur
 	}
 
 	if activityMeasureResponse.Status != status.OperationWasSuccessful {
-		return activityMeasureResponse, fmt.Errorf("%s", activityMeasureResponse.Error)
+		return activityMeasureResponse, fmt.Errorf("api returned an error: %s", activityMeasureResponse.Error)
 	}
-	// fmt.Println(string(activityMeasureResponse.RawResponse))
-	// panic("ok")
 
 	// Parse date time if possible.
 	if activityMeasureResponse.Body.Date != nil && activityMeasureResponse.Body.TimeZone != nil {
@@ -337,6 +337,7 @@ func (u User) GetWorkoutsCtx(ctx context.Context, params *WorkoutsQueryParam) (W
 
 	workoutResponse := WorkoutResponse{}
 
+	// Building query params
 	v := url.Values{}
 	t, err := u.Token.Token()
 	fmt.Printf("%v, %s, %s", t.Valid(), t.AccessToken, t.RefreshToken)
@@ -355,15 +356,12 @@ func (u User) GetWorkoutsCtx(ctx context.Context, params *WorkoutsQueryParam) (W
 		}
 	}
 
+	// Sending request to the API.
 	path := fmt.Sprintf("%s?%s", getWorkoutsURL, v.Encode())
 	if u.Client.IncludePath {
 		workoutResponse.Path = path
 	}
 
-	// resp, err := u.HTTPClient.Get(path)
-	// if err != nil {
-	// 	return workoutResponse, nil
-	// }
 	req, err := http.NewRequest("GET", path, nil)
 	req = req.WithContext(ctx)
 	if err != nil {
@@ -374,8 +372,9 @@ func (u User) GetWorkoutsCtx(ctx context.Context, params *WorkoutsQueryParam) (W
 	if err != nil {
 		return workoutResponse, err
 	}
-
 	defer resp.Body.Close()
+
+	// Processing API response.
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return workoutResponse, nil
@@ -388,10 +387,13 @@ func (u User) GetWorkoutsCtx(ctx context.Context, params *WorkoutsQueryParam) (W
 	if err != nil {
 		return workoutResponse, err
 	}
+	if workoutResponse.Status != status.OperationWasSuccessful {
+		return workoutResponse, fmt.Errorf("api returned an error: %s", workoutResponse.Error)
+	}
 
 	// Parse dates if possible
 	if workoutResponse.Body != nil {
-		for i, _ := range workoutResponse.Body.Series {
+		for i := range workoutResponse.Body.Series {
 			d := time.Unix(workoutResponse.Body.Series[i].StartDate, 0)
 			workoutResponse.Body.Series[i].StartDateParsed = &d
 
@@ -430,7 +432,7 @@ func (u User) GetBodyMeasures(params *BodyMeasuresQueryParams) (BodyMeasuresResp
 func (u User) GetBodyMeasuresCtx(ctx context.Context, params *BodyMeasuresQueryParams) (BodyMeasuresResp, error) {
 	bodyMeasureResponse := BodyMeasuresResp{}
 
-	// Build query params
+	// Building query params
 	v := url.Values{}
 	v.Add("action", "getmeas")
 	t, err := u.Token.Token()
@@ -466,15 +468,12 @@ func (u User) GetBodyMeasuresCtx(ctx context.Context, params *BodyMeasuresQueryP
 		}
 	}
 
+	// Sending request to the API.
 	path := fmt.Sprintf("%s?%s", getBodyMeasureURL, v.Encode())
 	if u.Client.IncludePath {
 		bodyMeasureResponse.Path = path
 	}
 
-	// resp, err := u.HTTPClient.Get(path)
-	// if err != nil {
-	// 	return bodyMeasureResponse, err
-	// }
 	req, err := http.NewRequest("GET", path, nil)
 	req = req.WithContext(ctx)
 	if err != nil {
@@ -485,8 +484,9 @@ func (u User) GetBodyMeasuresCtx(ctx context.Context, params *BodyMeasuresQueryP
 	if err != nil {
 		return bodyMeasureResponse, err
 	}
-
 	defer resp.Body.Close()
+
+	// Processing API response.
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return bodyMeasureResponse, err
@@ -498,6 +498,9 @@ func (u User) GetBodyMeasuresCtx(ctx context.Context, params *BodyMeasuresQueryP
 	err = json.Unmarshal(body, &bodyMeasureResponse)
 	if err != nil {
 		return bodyMeasureResponse, err
+	}
+	if bodyMeasureResponse.Status != status.OperationWasSuccessful {
+		return bodyMeasureResponse, fmt.Errorf("api returned an error: %s", bodyMeasureResponse.Error)
 	}
 
 	if params != nil && params.ParseResponse {
@@ -521,7 +524,7 @@ func (u User) GetSleepMeasures(params *SleepMeasuresQueryParam) (SleepMeasuresRe
 func (u User) GetSleepMeasuresCtx(ctx context.Context, params *SleepMeasuresQueryParam) (SleepMeasuresResp, error) {
 	sleepMeasureRepsonse := SleepMeasuresResp{}
 
-	// Build query params
+	// Building query params
 	v := url.Values{}
 	t, err := u.Token.Token()
 	if err != nil {
@@ -541,15 +544,12 @@ func (u User) GetSleepMeasuresCtx(ctx context.Context, params *SleepMeasuresQuer
 	v.Add(GetFieldName(*params, "StartDate"), strconv.FormatInt(params.StartDate.Unix(), 10))
 	v.Add(GetFieldName(*params, "EndDate"), strconv.FormatInt(params.EndDate.Unix(), 10))
 
+	// Sending request to the API.
 	path := fmt.Sprintf("%s?%s", getSleepMeasureURL, v.Encode())
 	if u.Client.IncludePath {
 		sleepMeasureRepsonse.Path = path
 	}
 
-	// resp, err := u.HTTPClient.Get(path)
-	// if err != nil {
-	// 	return sleepMeasureRepsonse, err
-	// }
 	req, err := http.NewRequest("GET", path, nil)
 	req = req.WithContext(ctx)
 	if err != nil {
@@ -560,8 +560,9 @@ func (u User) GetSleepMeasuresCtx(ctx context.Context, params *SleepMeasuresQuer
 	if err != nil {
 		return sleepMeasureRepsonse, err
 	}
-
 	defer resp.Body.Close()
+
+	// Processing API response.
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return sleepMeasureRepsonse, err
@@ -574,10 +575,13 @@ func (u User) GetSleepMeasuresCtx(ctx context.Context, params *SleepMeasuresQuer
 	if err != nil {
 		return sleepMeasureRepsonse, err
 	}
+	if sleepMeasureRepsonse.Status != status.OperationWasSuccessful {
+		return sleepMeasureRepsonse, fmt.Errorf("api returned an error: %s", sleepMeasureRepsonse.Error)
+	}
 
 	// Parse dates
 	if sleepMeasureRepsonse.Body != nil {
-		for i, _ := range sleepMeasureRepsonse.Body.Series {
+		for i := range sleepMeasureRepsonse.Body.Series {
 			t := time.Unix(sleepMeasureRepsonse.Body.Series[i].StartDate, 0)
 			sleepMeasureRepsonse.Body.Series[i].StartDateParsed = &t
 
@@ -601,7 +605,7 @@ func (u User) GetSleepSummary(params *SleepSummaryQueryParam) (SleepSummaryResp,
 func (u User) GetSleepSummaryCtx(ctx context.Context, params *SleepSummaryQueryParam) (SleepSummaryResp, error) {
 	sleepSummaryResponse := SleepSummaryResp{}
 
-	// Build query params
+	// Building query params
 	v := url.Values{}
 	t, err := u.Token.Token()
 	if err != nil {
@@ -624,15 +628,12 @@ func (u User) GetSleepSummaryCtx(ctx context.Context, params *SleepSummaryQueryP
 	v.Add(GetFieldName(*params, "StartDateYMD"), params.StartDateYMD.Format("2006-01-02"))
 	v.Add(GetFieldName(*params, "EndDateYMD"), params.EndDateYMD.Format("2006-01-02"))
 
+	// Sending request to the API.
 	path := fmt.Sprintf("%s?%s", getSleepSummaryURL, v.Encode())
 	if u.Client.IncludePath {
 		sleepSummaryResponse.Path = path
 	}
 
-	// resp, err := u.HTTPClient.Get(path)
-	// if err != nil {
-	// 	return sleepSummaryResponse, err
-	// }
 	req, err := http.NewRequest("GET", path, nil)
 	req = req.WithContext(ctx)
 	if err != nil {
@@ -643,8 +644,9 @@ func (u User) GetSleepSummaryCtx(ctx context.Context, params *SleepSummaryQueryP
 	if err != nil {
 		return sleepSummaryResponse, err
 	}
-
 	defer resp.Body.Close()
+
+	// Processing API response.
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return sleepSummaryResponse, err
@@ -656,6 +658,9 @@ func (u User) GetSleepSummaryCtx(ctx context.Context, params *SleepSummaryQueryP
 	err = json.Unmarshal(body, &sleepSummaryResponse)
 	if err != nil {
 		return sleepSummaryResponse, err
+	}
+	if sleepSummaryResponse.Status != status.OperationWasSuccessful {
+		return sleepSummaryResponse, fmt.Errorf("api returned an error: %s", sleepSummaryResponse.Error)
 	}
 
 	// Parse all the date fields.
@@ -704,7 +709,7 @@ func (u User) CreateNotificationCtx(ctx context.Context, params *CreateNotificat
 		params = &CreateNotificationParam{}
 	}
 
-	// Build query params.
+	// Building query params.
 	v := url.Values{}
 	t, err := u.Token.Token()
 	if err != nil {
@@ -717,15 +722,12 @@ func (u User) CreateNotificationCtx(ctx context.Context, params *CreateNotificat
 	v.Add(GetFieldName(*params, "Comment"), params.Comment)
 	v.Add(GetFieldName(*params, "Appli"), strconv.Itoa(params.Appli))
 
+	// Sending request to the API.
 	path := fmt.Sprintf("%s?%s", createNotficationURL, v.Encode())
 	if u.Client.IncludePath {
 		createNotificationResponse.Path = path
 	}
 
-	// resp, err := u.HTTPClient.Get(path)
-	// if err != nil {
-	// 	return createNotificationResponse, err
-	// }
 	req, err := http.NewRequest("GET", path, nil)
 	req = req.WithContext(ctx)
 	if err != nil {
@@ -736,8 +738,9 @@ func (u User) CreateNotificationCtx(ctx context.Context, params *CreateNotificat
 	if err != nil {
 		return createNotificationResponse, err
 	}
-
 	defer resp.Body.Close()
+
+	// Processing API response.
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return createNotificationResponse, err
@@ -750,6 +753,9 @@ func (u User) CreateNotificationCtx(ctx context.Context, params *CreateNotificat
 	if err != nil {
 		return createNotificationResponse, err
 	}
+	if createNotificationResponse.Status != status.OperationWasSuccessful {
+		return createNotificationResponse, fmt.Errorf("api returned an error: %s", createNotificationResponse.Error)
+	}
 
 	return createNotificationResponse, nil
 }
@@ -761,11 +767,11 @@ func (u User) ListNotifications(params *ListNotificationsParam) (ListNotificatio
 	return u.ListNotificationsCtx(ctx, params)
 }
 
-// ListNotifications lists all the notifications found for the user.
+// ListNotificationsCtx lists all the notifications found for the user.
 func (u User) ListNotificationsCtx(ctx context.Context, params *ListNotificationsParam) (ListNotificationsResp, error) {
 	listNotificationResponse := ListNotificationsResp{}
 
-	// Build query params.
+	// Building query params.
 	v := url.Values{}
 	t, err := u.Token.Token()
 	if err != nil {
@@ -780,15 +786,11 @@ func (u User) ListNotificationsCtx(ctx context.Context, params *ListNotification
 		}
 	}
 
+	// Sending request to the API.
 	path := fmt.Sprintf("%s?%s", listNotificationsURL, v.Encode())
 	if u.Client.IncludePath {
 		listNotificationResponse.Path = path
 	}
-
-	// resp, err := u.HTTPClient.Get(path)
-	// if err != nil {
-	// 	return listNotificationResponse, err
-	// }
 	req, err := http.NewRequest("GET", path, nil)
 	req = req.WithContext(ctx)
 	if err != nil {
@@ -799,8 +801,9 @@ func (u User) ListNotificationsCtx(ctx context.Context, params *ListNotification
 	if err != nil {
 		return listNotificationResponse, err
 	}
-
 	defer resp.Body.Close()
+
+	// Processing API response.
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return listNotificationResponse, err
@@ -813,10 +816,13 @@ func (u User) ListNotificationsCtx(ctx context.Context, params *ListNotification
 	if err != nil {
 		return listNotificationResponse, err
 	}
+	if listNotificationResponse.Status != status.OperationWasSuccessful {
+		return listNotificationResponse, fmt.Errorf("api returned error: %s", listNotificationResponse.Error)
+	}
 
 	// Parse dates
 	if listNotificationResponse.Body != nil {
-		for i, _ := range listNotificationResponse.Body.Profiles {
+		for i := range listNotificationResponse.Body.Profiles {
 			d := time.Unix(listNotificationResponse.Body.Profiles[0].Expires, 0)
 			listNotificationResponse.Body.Profiles[i].ExpiresParsed = &d
 		}
@@ -836,7 +842,7 @@ func (u User) GetNotificationInformation(params *NotificationInfoParam) (Notific
 func (u User) GetNotificationInformationCtx(ctx context.Context, params *NotificationInfoParam) (NotificationInfoResp, error) {
 	notificationInfoResponse := NotificationInfoResp{}
 
-	// Build query params.
+	// Building query params.
 	v := url.Values{}
 	t, err := u.Token.Token()
 	if err != nil {
@@ -852,15 +858,12 @@ func (u User) GetNotificationInformationCtx(ctx context.Context, params *Notific
 	v.Add(GetFieldName(*params, "CallbackURL"), params.CallbackURL.String())
 	v.Add(GetFieldName(*params, "Appli"), strconv.Itoa(*params.Appli))
 
+	// Sending reqeust to the API.
 	path := fmt.Sprintf("%s?%s", getNotificationInformationURL, v.Encode())
 	if u.Client.IncludePath {
 		notificationInfoResponse.Path = path
 	}
 
-	// resp, err := u.HTTPClient.Get(path)
-	// if err != nil {
-	// 	return notificationInfoResponse, err
-	// }
 	req, err := http.NewRequest("GET", path, nil)
 	req = req.WithContext(ctx)
 	if err != nil {
@@ -871,8 +874,9 @@ func (u User) GetNotificationInformationCtx(ctx context.Context, params *Notific
 	if err != nil {
 		return notificationInfoResponse, err
 	}
-
 	defer resp.Body.Close()
+
+	// Processing API response.
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return notificationInfoResponse, err
@@ -884,6 +888,9 @@ func (u User) GetNotificationInformationCtx(ctx context.Context, params *Notific
 	err = json.Unmarshal(body, &notificationInfoResponse)
 	if err != nil {
 		return notificationInfoResponse, err
+	}
+	if notificationInfoResponse.Status != status.OperationWasSuccessful {
+		return notificationInfoResponse, fmt.Errorf("api returned an error: %s", notificationInfoResponse.Error)
 	}
 
 	// Parse dates
@@ -907,7 +914,7 @@ func (u User) RevokeNotification(params *RevokeNotificationParam) (RevokeNotific
 func (u User) RevokeNotificationCtx(ctx context.Context, params *RevokeNotificationParam) (RevokeNotificationResp, error) {
 	revokeResponse := RevokeNotificationResp{}
 
-	// Build query params.
+	// Building query params.
 	v := url.Values{}
 	t, err := u.Token.Token()
 	if err != nil {
@@ -923,15 +930,12 @@ func (u User) RevokeNotificationCtx(ctx context.Context, params *RevokeNotificat
 	v.Add(GetFieldName(*params, "CallbackURL"), params.CallbackURL.String())
 	v.Add(GetFieldName(*params, "Appli"), strconv.Itoa(*params.Appli))
 
+	// Sending request to the API.
 	path := fmt.Sprintf("%s?%s", revokeNotificationURL, v.Encode())
 	if u.Client.IncludePath {
 		revokeResponse.Path = path
 	}
 
-	// resp, err := u.HTTPClient.Get(path)
-	// if err != nil {
-	// 	return revokeResponse, err
-	// }
 	req, err := http.NewRequest("GET", path, nil)
 	req = req.WithContext(ctx)
 	if err != nil {
@@ -942,8 +946,9 @@ func (u User) RevokeNotificationCtx(ctx context.Context, params *RevokeNotificat
 	if err != nil {
 		return revokeResponse, err
 	}
-
 	defer resp.Body.Close()
+
+	// Processing API response.
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return revokeResponse, err
@@ -955,6 +960,9 @@ func (u User) RevokeNotificationCtx(ctx context.Context, params *RevokeNotificat
 	err = json.Unmarshal(body, &revokeResponse)
 	if err != nil {
 		return revokeResponse, err
+	}
+	if revokeResponse.Status != status.OperationWasSuccessful {
+		return revokeResponse, fmt.Errorf("api returned an error: %s", revokeResponse.Error)
 	}
 
 	return revokeResponse, nil
