@@ -39,6 +39,7 @@ type RevokeNotificationResp struct {
 	Status      status.Status `json:"status"`
 	RawResponse []byte
 	Path        string
+	Error       string
 }
 
 // NotificationInfoParam provides the query parameters nessasary to retrieve
@@ -55,6 +56,7 @@ type NotificationInfoResp struct {
 	Body        *NotificationInfoRespBody `json:"body"`
 	RawResponse []byte
 	Path        string
+	Error       string
 }
 
 // NotificationInfoRespBody represents the body of the notification response.
@@ -76,6 +78,7 @@ type ListNotificationsResp struct {
 	Body        *ListNotificationsRespBody `json:"body"`
 	RawResponse []byte
 	Path        string
+	Error       string
 }
 
 // ListNotificationsRespBody represents the notification list body.
@@ -131,6 +134,7 @@ type SleepSummaryResp struct {
 	Body        *SleepSummaryBody `json:"body"`
 	RawResponse []byte
 	Path        string
+	Error       string
 }
 
 // SleepSummaryBody represents the unmarshelled api response for the sleep summary body.
@@ -172,6 +176,7 @@ type SleepMeasuresResp struct {
 	Body        *SleepMeasuresRespBody `json:"body"`
 	RawResponse []byte
 	Path        string
+	Error       string
 }
 
 // SleepMeasuresRespBody actrepresents the unmarshelled api response for sleep measures body.
@@ -235,6 +240,7 @@ type WorkoutResponse struct {
 	Body        *WorkoutRespBody `json:"body"`
 	RawResponse []byte
 	Path        string
+	Error       string
 }
 
 // WorkoutRespBody represents the unmarshelled body of the workout api resposne.
@@ -349,6 +355,7 @@ type BodyMeasuresResp struct {
 	RawResponse    []byte
 	Path           string
 	ParsedResponse *BodyMeasures
+	Error          string
 }
 
 // BodyMeasureRespBody represents the body portion of the body measure response.
