@@ -1,8 +1,8 @@
 # The developer authentication information.
-devToken = ""
-devSecret = ""
+ClientID = ""
+ConsumerSecret = ""
+RedirectURL = ""
 
 # The ID of the user requests will be made for.
-userID = 0
-userToken = ""
-userSecret = ""
+AccessToken = ""
+RefreshToken = ""

@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/jrmycanady/nokiahealth/enum/status"
 	"golang.org/x/oauth2"
 	nokiaOauth2 "golang.org/x/oauth2/nokiahealth"
 )
@@ -59,8 +60,9 @@ func NewClient(clientID string, clientSecret string, redirectURL string) Client 
 			RedirectURL:  redirectURL,
 			ClientID:     clientID,
 			ClientSecret: clientSecret,
-			Scopes:       []string{"user.metrics"},
-			Endpoint:     nokiaOauth2.Endpoint,
+			// Scopes:       []string{"user.metrics", "user.activity"},
+			Scopes:   []string{"user.activity,user.metrics"},
+			Endpoint: nokiaOauth2.Endpoint,
 		},
 		Rand: generateRandomString,
 	}
@@ -92,7 +94,7 @@ func (c *Client) GenerateAccessToken(ctx context.Context, code string) (*oauth2.
 // api.
 type User struct {
 	Client     *Client
-	Token      *oauth2.Token
+	Token      oauth2.TokenSource
 	HTTPClient *http.Client
 }
 
@@ -105,20 +107,21 @@ func (c *Client) NewUserFromAuthCode(ctx context.Context, code string) (*User, e
 		return nil, fmt.Errorf("failed to obtain token: %s", err)
 	}
 
-	return &User{Token: t, Client: c, HTTPClient: c.OAuth2Config.Client(ctx, t)}, nil
+	return &User{Token: c.OAuth2Config.TokenSource(ctx, t), Client: c, HTTPClient: c.OAuth2Config.Client(ctx, t)}, nil
 }
 
 // NewUserFromRefreshToken generates a new user that the refresh token is for.
 // Upon creation a new access token is also generated. If the generation of the
 // access token fails, an error is returned.
-func (c *Client) NewUserFromRefreshToken(ctx context.Context, token string) (*User, error) {
+func (c *Client) NewUserFromRefreshToken(ctx context.Context, accessToken string, refreshToken string) (*User, error) {
 	t := oauth2.Token{
-		RefreshToken: token,
+		RefreshToken: refreshToken,
+		AccessToken:  accessToken,
 	}
 
 	u := User{
 		Client:     c,
-		Token:      &t,
+		Token:      c.OAuth2Config.TokenSource(ctx, &t),
 		HTTPClient: c.OAuth2Config.Client(ctx, &t),
 	}
 
@@ -134,7 +137,11 @@ func (u User) GetIntradayActivity(params *IntradayActivityQueryParam) (IntradayA
 
 	// Build query params
 	v := url.Values{}
-	//v.Add("userid", strconv.Itoa(u.UserID))
+	t, err := u.Token.Token()
+	if err != nil {
+		return intraDayActivityResponse, fmt.Errorf("failed to obtain token: %s", err)
+	}
+	v.Add("access_token", t.AccessToken)
 	v.Add("action", "getintradayactivity")
 
 	if params != nil {
@@ -174,7 +181,8 @@ func (u User) GetIntradayActivity(params *IntradayActivityQueryParam) (IntradayA
 }
 
 // GetActivityMeasures retrieves the activity measurements as specified by the config
-// provided.
+// provided. If the start time is missing the current time minus one day will be used.
+// If the end time is missing the current day will be used.
 func (u User) GetActivityMeasures(params *ActivityMeasuresQueryParam) (ActivitiesMeasuresResp, error) {
 	activityMeasureResponse := ActivitiesMeasuresResp{}
 
@@ -182,22 +190,36 @@ func (u User) GetActivityMeasures(params *ActivityMeasuresQueryParam) (Activitie
 
 	// Build query params
 	v := url.Values{}
-	//v.Add("userid", strconv.Itoa(u.UserID))
+
+	t, err := u.Token.Token()
+	if err != nil {
+		return activityMeasureResponse, fmt.Errorf("failed to obtain token: %s", err)
+	}
+	v.Add("access_token", t.AccessToken)
 	v.Add("action", "getactivity")
 
 	if params != nil {
-		if params.Date != nil {
-			v.Add(GetFieldName(*params, "Date"), params.Date.Format("2006-01-02"))
-		}
+		// if params.Date != nil {
+		// 	v.Add(GetFieldName(*params, "Date"), params.Date.Format("2006-01-02"))
+		// }
 		if params.StartDateYMD != nil {
 			v.Add(GetFieldName(*params, "StartDateYMD"), params.StartDateYMD.Format("2006-01-02"))
+		} else {
+			v.Add(GetFieldName(*params, "StartDateYMD"), time.Now().AddDate(0, 0, -1).Format("2006-01-02"))
 		}
 		if params.EndDateYMD != nil {
 			v.Add(GetFieldName(*params, "EndDateYMD"), params.EndDateYMD.Format("2006-01-02"))
+		} else {
+			v.Add(GetFieldName(*params, "EndDateYMD"), time.Now().Format("2006-01-02"))
 		}
 		if params.LasteUpdate != nil {
 			v.Add(GetFieldName(*params, "LasteUpdate"), strconv.FormatInt(params.LasteUpdate.Unix(), 10))
 		}
+	} else {
+		params = &ActivityMeasuresQueryParam{}
+		v.Add(GetFieldName(*params, "StartDateYMD"), time.Now().AddDate(0, 0, -1).Format("2006-01-02"))
+		v.Add(GetFieldName(*params, "EndDateYMD"), time.Now().Format("2006-01-02"))
+
 	}
 
 	path := fmt.Sprintf("%s?%s", getActivityMeasuresURL, v.Encode())
@@ -224,6 +246,12 @@ func (u User) GetActivityMeasures(params *ActivityMeasuresQueryParam) (Activitie
 		return activityMeasureResponse, err
 	}
 
+	if activityMeasureResponse.Status != status.OperationWasSuccessful {
+		return activityMeasureResponse, fmt.Errorf("%s", activityMeasureResponse.Error)
+	}
+	// fmt.Println(string(activityMeasureResponse.RawResponse))
+	// panic("ok")
+
 	// Parse date time if possible.
 	if activityMeasureResponse.Body.Date != nil && activityMeasureResponse.Body.TimeZone != nil {
 		location, err := time.LoadLocation(*activityMeasureResponse.Body.TimeZone)
@@ -242,7 +270,7 @@ func (u User) GetActivityMeasures(params *ActivityMeasuresQueryParam) (Activitie
 		activityMeasureResponse.Body.SingleValue = true
 	}
 
-	for aID, _ := range activityMeasureResponse.Body.Activities {
+	for aID := range activityMeasureResponse.Body.Activities {
 		location, err := time.LoadLocation(activityMeasureResponse.Body.Activities[aID].TimeZone)
 		if err != nil {
 			return activityMeasureResponse, err
@@ -269,7 +297,11 @@ func (u User) GetWorkouts(params *WorkoutsQueryParam) (WorkoutResponse, error) {
 	httpClient := u.HTTPClient
 
 	v := url.Values{}
-	//v.Add("userid", strconv.Itoa(u.UserID))
+	t, err := u.Token.Token()
+	if err != nil {
+		return workoutResponse, fmt.Errorf("failed to obtain token: %s", err)
+	}
+	v.Add("access_token", t.AccessToken)
 	v.Add("action", "getworkouts")
 
 	if params != nil {
@@ -339,12 +371,14 @@ func (u User) GetWorkouts(params *WorkoutsQueryParam) (WorkoutResponse, error) {
 func (u User) GetBodyMeasures(params *BodyMeasuresQueryParams) (BodyMeasuresResp, error) {
 	bodyMeasureResponse := BodyMeasuresResp{}
 
-	httpClient := u.HTTPClient
-
 	// Build query params
 	v := url.Values{}
-	//v.Add("userid", strconv.Itoa(u.UserID))
 	v.Add("action", "getmeas")
+	t, err := u.Token.Token()
+	if err != nil {
+		return bodyMeasureResponse, fmt.Errorf("failed to obtain token: %s", err)
+	}
+	v.Add("access_token", t.AccessToken)
 
 	if params != nil {
 		if params.StartDate != nil {
@@ -378,7 +412,7 @@ func (u User) GetBodyMeasures(params *BodyMeasuresQueryParams) (BodyMeasuresResp
 		bodyMeasureResponse.Path = path
 	}
 
-	resp, err := httpClient.Get(path)
+	resp, err := u.HTTPClient.Get(path)
 	if err != nil {
 		return bodyMeasureResponse, err
 	}
@@ -415,7 +449,11 @@ func (u User) GetSleepMeasures(params *SleepMeasuresQueryParam) (SleepMeasuresRe
 
 	// Build query params
 	v := url.Values{}
-	//v.Add("userid", strconv.Itoa(u.UserID))
+	t, err := u.Token.Token()
+	if err != nil {
+		return sleepMeasureRepsonse, fmt.Errorf("failed to obtain token: %s", err)
+	}
+	v.Add("access_token", t.AccessToken)
 	v.Add("action", "get")
 
 	// Params are required for this api call. To be consident we handle empty params and build
@@ -476,7 +514,11 @@ func (u User) GetSleepSummary(params *SleepSummaryQueryParam) (SleepSummaryResp,
 
 	// Build query params
 	v := url.Values{}
-	//v.Add("userid", strconv.Itoa(u.UserID))
+	t, err := u.Token.Token()
+	if err != nil {
+		return sleepSummaryResponse, fmt.Errorf("failed to obtain token: %s", err)
+	}
+	v.Add("access_token", t.AccessToken)
 	v.Add("action", "getsummary")
 
 	// Params are required for this api call. To be consident we handle empty params and build
@@ -560,7 +602,11 @@ func (u User) CreateNotification(params *CreateNotificationParam) (CreateNotific
 
 	// Build query params.
 	v := url.Values{}
-	//v.Add("userid", strconv.Itoa(u.UserID))
+	t, err := u.Token.Token()
+	if err != nil {
+		return createNotificationResponse, fmt.Errorf("failed to obtain token: %s", err)
+	}
+	v.Add("access_token", t.AccessToken)
 	v.Add("action", "subscribe")
 
 	v.Add(GetFieldName(*params, "CallbackURL"), params.CallbackURL.String())
@@ -602,7 +648,11 @@ func (u User) ListNotifications(params *ListNotificationsParam) (ListNotificatio
 
 	// Build query params.
 	v := url.Values{}
-	//v.Add("userid", strconv.Itoa(u.UserID))
+	t, err := u.Token.Token()
+	if err != nil {
+		return listNotificationResponse, fmt.Errorf("failed to obtain token: %s", err)
+	}
+	v.Add("access_token", t.AccessToken)
 	v.Add("action", "list")
 
 	if params != nil {
@@ -654,7 +704,11 @@ func (u User) GetNotificationInformation(params *NotificationInfoParam) (Notific
 
 	// Build query params.
 	v := url.Values{}
-	//v.Add("userid", strconv.Itoa(u.UserID))
+	t, err := u.Token.Token()
+	if err != nil {
+		return notificationInfoResponse, fmt.Errorf("failed to obtain token: %s", err)
+	}
+	v.Add("access_token", t.AccessToken)
 	v.Add("action", "get")
 
 	if params == nil {
@@ -706,7 +760,11 @@ func (u User) RevokeNotification(params *RevokeNotificationParam) (RevokeNotific
 
 	// Build query params.
 	v := url.Values{}
-	//v.Add("userid", strconv.Itoa(u.UserID))
+	t, err := u.Token.Token()
+	if err != nil {
+		return revokeResponse, fmt.Errorf("failed to obtain token: %s", err)
+	}
+	v.Add("access_token", t.AccessToken)
 	v.Add("action", "revoke")
 
 	if params == nil {
