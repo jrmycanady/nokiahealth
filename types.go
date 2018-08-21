@@ -199,6 +199,7 @@ type IntradayActivityQueryParam struct {
 // IntradayActivityResp represents the unmarshelled api response for intraday activities.
 type IntradayActivityResp struct {
 	Status      status.Status             `json:"status"`
+	Error       string                    `json:"error"`
 	Body        *IntradayActivityRespBody `json:"body"`
 	RawResponse []byte
 	Path        string
@@ -266,8 +267,8 @@ type Workout struct {
 // specified or the API will fail. Additionally there is no ParseResponse option as
 // there is no need to because the activities response doesn't need further parsing.
 type ActivityMeasuresQueryParam struct {
-	UserID           int        `json:"userid"`
-	Date             *time.Time `json:"date"`
+	UserID int `json:"userid"`
+	// Date             *time.Time `json:"date"`
 	StartDateYMD     *time.Time `json:"startdateymd"`
 	EndDateYMD       *time.Time `json:"enddateymd"`
 	LasteUpdate      *time.Time `json:"lastupdate"`
@@ -280,6 +281,7 @@ type ActivityMeasuresQueryParam struct {
 // will be populated with raw bytes returned by the API.
 type ActivitiesMeasuresResp struct {
 	Status      status.Status               `json:"status"`
+	Error       string                      `json:"error"`
 	Body        *ActivitiesMeasuresRespBody `json:"body"`
 	RawResponse []byte
 	Path        string

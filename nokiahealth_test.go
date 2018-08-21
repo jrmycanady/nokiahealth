@@ -1,6 +1,7 @@
 package nokiahealth
 
 import (
+	"context"
 	"io/ioutil"
 	"net/url"
 	"testing"
@@ -10,11 +11,11 @@ import (
 )
 
 type TestConfig struct {
-	DevToken   string
-	DevSecret  string
-	UserToken  string
-	UserSecret string
-	UserID     int
+	ClientID       string
+	ConsumerSecret string
+	RedirectURL    string
+	AccessToken    string
+	RefreshToken   string
 }
 
 func LoadConfig() error {
@@ -40,11 +41,14 @@ func TestGetBodyMeasures(t *testing.T) {
 	}
 
 	// Build the client.
-	c := NewClient(tc.DevToken, tc.DevSecret, "")
+	c := NewClient(tc.ClientID, tc.ConsumerSecret, tc.RedirectURL)
 	c.SaveRawResponse = true
 
 	// Build the user
-	u := c.GenerateUser(tc.UserToken, tc.UserSecret, tc.UserID)
+	u, err := c.NewUserFromRefreshToken(context.Background(), tc.AccessToken, tc.RefreshToken)
+	if err != nil {
+		t.Fatalf("failed to create user: %s", err)
+	}
 
 	startDate := time.Now().AddDate(0, 0, -2)
 	endDate := time.Now()
@@ -71,15 +75,19 @@ func TestGetActivityMeasures(t *testing.T) {
 	}
 
 	// Build the client.
-	c := NewClient(tc.DevToken, tc.DevSecret, "")
+	c := NewClient(tc.ClientID, tc.ConsumerSecret, tc.RedirectURL)
 	c.SaveRawResponse = true
+	c.IncludePath = true
 
 	// Build the user
-	u := c.GenerateUser(tc.UserToken, tc.UserSecret, tc.UserID)
+	u, err := c.NewUserFromRefreshToken(context.Background(), tc.AccessToken, tc.RefreshToken)
+	if err != nil {
+		t.Fatalf("failed to create user: %s", err)
+	}
 
 	m, err := u.GetActivityMeasures(nil)
 	if err != nil {
-		t.Fatalf("failed to get body measurements: %v", err)
+		t.Fatalf("failed to get body measurements: %v\n%s\n%s", err, m.RawResponse, m.Path)
 	}
 
 	if m.Status != 0 {
@@ -94,19 +102,22 @@ func TestGetIntradayActivity(t *testing.T) {
 	}
 
 	// Build the client.
-	c := NewClient(tc.DevToken, tc.DevSecret, "")
+	c := NewClient(tc.ClientID, tc.ConsumerSecret, tc.RedirectURL)
 	c.SaveRawResponse = true
 
 	// Build the user
-	u := c.GenerateUser(tc.UserToken, tc.UserSecret, tc.UserID)
+	u, err := c.NewUserFromRefreshToken(context.Background(), tc.AccessToken, tc.RefreshToken)
+	if err != nil {
+		t.Fatalf("failed to create user: %s", err)
+	}
 
 	m, err := u.GetIntradayActivity(nil)
 	if err != nil {
-		t.Fatalf("failed to get body measurements: %v", err)
+		t.Fatalf("failed to get intra day measures: %v", err)
 	}
 
 	if m.Status != 0 {
-		t.Fatalf("failed to get body measurements with api error %d => %v", m.Status, m.Status.String())
+		t.Fatalf("failed to get intra day measures with api error %d => %v: %v", m.Status, m.Status.String(), m.Error)
 	}
 }
 
@@ -117,11 +128,14 @@ func TestGetWorkouts(t *testing.T) {
 	}
 
 	// Build the client.
-	c := NewClient(tc.DevToken, tc.DevSecret, "")
+	c := NewClient(tc.ClientID, tc.ConsumerSecret, tc.RedirectURL)
 	c.SaveRawResponse = true
 
 	// Build the user
-	u := c.GenerateUser(tc.UserToken, tc.UserSecret, tc.UserID)
+	u, err := c.NewUserFromRefreshToken(context.Background(), tc.AccessToken, tc.RefreshToken)
+	if err != nil {
+		t.Fatalf("failed to create user: %s", err)
+	}
 
 	m, err := u.GetWorkouts(nil)
 	if err != nil {
@@ -140,11 +154,14 @@ func TestGetSleepMeasures(t *testing.T) {
 	}
 
 	// Build the client.
-	c := NewClient(tc.DevToken, tc.DevSecret, "")
+	c := NewClient(tc.ClientID, tc.ConsumerSecret, tc.RedirectURL)
 	c.SaveRawResponse = true
 
 	// Build the user
-	u := c.GenerateUser(tc.UserToken, tc.UserSecret, tc.UserID)
+	u, err := c.NewUserFromRefreshToken(context.Background(), tc.AccessToken, tc.RefreshToken)
+	if err != nil {
+		t.Fatalf("failed to create user: %s", err)
+	}
 
 	m, err := u.GetSleepMeasures(nil)
 	if err != nil {
@@ -163,11 +180,14 @@ func TestGetSleepSummary(t *testing.T) {
 	}
 
 	// Build the client.
-	c := NewClient(tc.DevToken, tc.DevSecret, "")
+	c := NewClient(tc.ClientID, tc.ConsumerSecret, tc.RedirectURL)
 	c.SaveRawResponse = true
 
 	// Build the user
-	u := c.GenerateUser(tc.UserToken, tc.UserSecret, tc.UserID)
+	u, err := c.NewUserFromRefreshToken(context.Background(), tc.AccessToken, tc.RefreshToken)
+	if err != nil {
+		t.Fatalf("failed to create user: %s", err)
+	}
 
 	m, err := u.GetSleepSummary(nil)
 	if err != nil {
@@ -187,11 +207,14 @@ func TestNotificationFunctions(t *testing.T) {
 	}
 
 	// Build the client.
-	c := NewClient(tc.DevToken, tc.DevSecret, "")
+	c := NewClient(tc.ClientID, tc.ConsumerSecret, tc.RedirectURL)
 	c.SaveRawResponse = true
 
 	// Build the user
-	u := c.GenerateUser(tc.UserToken, tc.UserSecret, tc.UserID)
+	u, err := c.NewUserFromRefreshToken(context.Background(), tc.AccessToken, tc.RefreshToken)
+	if err != nil {
+		t.Fatalf("failed to create user: %s", err)
+	}
 
 	// Test creating a notification
 	var ul *url.URL
@@ -248,11 +271,14 @@ func TestListNotifications(t *testing.T) {
 	}
 
 	// Build the client.
-	c := NewClient(tc.DevToken, tc.DevSecret, "")
+	c := NewClient(tc.ClientID, tc.ConsumerSecret, tc.RedirectURL)
 	c.SaveRawResponse = true
 
 	// Build the user
-	u := c.GenerateUser(tc.UserToken, tc.UserSecret, tc.UserID)
+	u, err := c.NewUserFromRefreshToken(context.Background(), tc.AccessToken, tc.RefreshToken)
+	if err != nil {
+		t.Fatalf("failed to create user: %s", err)
+	}
 
 	m, err := u.ListNotifications(nil)
 	if err != nil {

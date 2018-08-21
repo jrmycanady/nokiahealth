@@ -1,3 +1,7 @@
 testing/*
 TODO.md
 test.toml
+cmd/gettoken/gettoken.exe
+oath_test/main.go
+cmd/clionly/clionly.exe
+oath_test/oath_test.exe
