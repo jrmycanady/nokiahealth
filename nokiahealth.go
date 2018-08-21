@@ -30,6 +30,15 @@ const (
 	revokeNotificationURL         = "https://api.health.nokia.com/notify"
 )
 
+type Scope string {
+	// ScopeUserMetrics provides access to the Getmeas actions.
+	ScopeUserMetrics = "user.metrics",
+	// ScopeUserInfo provides access to the user information.
+	ScopeUserInfo = "user.info",
+	// ScopeUserActivity provides access to the users activity data.
+	ScopeUserActivity = "user.activity",
+}
+
 // Rand provides a function type to allow passing in custom random functions
 // used for state generation.
 type Rand func() (string, error)
@@ -68,6 +77,13 @@ func NewClient(clientID string, clientSecret string, redirectURL string) Client 
 		Rand:    generateRandomString,
 		Timeout: 5 * time.Second,
 	}
+}
+
+// SetScope allows for setting the scope of the client which is used during
+// authorization requests for new users. By default the scope will be all
+// scopes. This is also not thread safe.
+func (c *Client) SetScope(scopes ...Scope) {
+	c.OAuth2Config.Scopes = strings.join(scopes, ",")
 }
 
 // getContext returns a context set to time out after the duration specified
