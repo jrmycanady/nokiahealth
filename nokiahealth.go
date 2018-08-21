@@ -30,14 +30,16 @@ const (
 	revokeNotificationURL         = "https://api.health.nokia.com/notify"
 )
 
-type Scope string {
+type Scope string
+
+const(
 	// ScopeUserMetrics provides access to the Getmeas actions.
-	ScopeUserMetrics = "user.metrics",
+	ScopeUserMetrics Scope = "user.metrics"
 	// ScopeUserInfo provides access to the user information.
-	ScopeUserInfo = "user.info",
+	ScopeUserInfo Scope = "user.info"
 	// ScopeUserActivity provides access to the users activity data.
-	ScopeUserActivity = "user.activity",
-}
+	ScopeUserActivity Scope = "user.activity"
+)
 
 // Rand provides a function type to allow passing in custom random functions
 // used for state generation.
