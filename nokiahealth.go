@@ -48,6 +48,7 @@ type Client struct {
 	SaveRawResponse bool
 	IncludePath     bool
 	Rand            Rand
+	Timeout         time.Duration
 }
 
 // NewClient creates a new client using the Ouath2 information provided. The
@@ -61,11 +62,18 @@ func NewClient(clientID string, clientSecret string, redirectURL string) Client 
 			ClientID:     clientID,
 			ClientSecret: clientSecret,
 			// Scopes:       []string{"user.metrics", "user.activity"},
-			Scopes:   []string{"user.activity,user.metrics"},
+			Scopes:   []string{"user.activity,user.metrics,user.info"},
 			Endpoint: nokiaOauth2.Endpoint,
 		},
-		Rand: generateRandomString,
+		Rand:    generateRandomString,
+		Timeout: 5 * time.Second,
 	}
+}
+
+// getContext returns a context set to time out after the duration specified
+// in the client.
+func (c *Client) getContext() (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.Background(), c.Timeout)
 }
 
 // AuthCodeURL generates the URL user authorization URL. Users should be redirected
@@ -117,6 +125,7 @@ func (c *Client) NewUserFromRefreshToken(ctx context.Context, accessToken string
 	t := oauth2.Token{
 		RefreshToken: refreshToken,
 		AccessToken:  accessToken,
+		Expiry:       time.Now().AddDate(0, 0, -1),
 	}
 
 	u := User{
@@ -128,12 +137,17 @@ func (c *Client) NewUserFromRefreshToken(ctx context.Context, accessToken string
 	return &u, nil
 }
 
-// GetIntradayActivity retreieves intraday activites from the API. Special permissions provided by
-// Nokia Health are required to use this resource.
+// GetIntradayActivity is the same as GetIntraDayActivityCtx but doesn't require a context to be provided.
 func (u User) GetIntradayActivity(params *IntradayActivityQueryParam) (IntradayActivityResp, error) {
-	intraDayActivityResponse := IntradayActivityResp{}
+	ctx, cancel := u.Client.getContext()
+	defer cancel()
+	return u.GetIntradayActivityCtx(ctx, params)
+}
 
-	httpClient := u.HTTPClient
+// GetIntradayActivityCtx retreieves intraday activites from the API. Special permissions provided by
+// Nokia Health are required to use this resource.
+func (u User) GetIntradayActivityCtx(ctx context.Context, params *IntradayActivityQueryParam) (IntradayActivityResp, error) {
+	intraDayActivityResponse := IntradayActivityResp{}
 
 	// Build query params
 	v := url.Values{}
@@ -158,7 +172,13 @@ func (u User) GetIntradayActivity(params *IntradayActivityQueryParam) (IntradayA
 		intraDayActivityResponse.Path = path
 	}
 
-	resp, err := httpClient.Get(path)
+	req, err := http.NewRequest("GET", path, nil)
+	req = req.WithContext(ctx)
+	if err != nil {
+		return intraDayActivityResponse, fmt.Errorf("failed to build request: %s", err)
+	}
+
+	resp, err := u.HTTPClient.Do(req)
 	if err != nil {
 		return intraDayActivityResponse, err
 	}
@@ -180,13 +200,18 @@ func (u User) GetIntradayActivity(params *IntradayActivityQueryParam) (IntradayA
 	return intraDayActivityResponse, nil
 }
 
-// GetActivityMeasures retrieves the activity measurements as specified by the config
+// GetActivityMeasures is the same as GetActivityMeasuresCtx but doesn't require a context to be provided.
+func (u User) GetActivityMeasures(params *ActivityMeasuresQueryParam) (ActivitiesMeasuresResp, error) {
+	ctx, cancel := u.Client.getContext()
+	defer cancel()
+	return u.GetActivityMeasuresCtx(ctx, params)
+}
+
+// GetActivityMeasuresCtx retrieves the activity measurements as specified by the config
 // provided. If the start time is missing the current time minus one day will be used.
 // If the end time is missing the current day will be used.
-func (u User) GetActivityMeasures(params *ActivityMeasuresQueryParam) (ActivitiesMeasuresResp, error) {
+func (u User) GetActivityMeasuresCtx(ctx context.Context, params *ActivityMeasuresQueryParam) (ActivitiesMeasuresResp, error) {
 	activityMeasureResponse := ActivitiesMeasuresResp{}
-
-	httpClient := u.HTTPClient
 
 	// Build query params
 	v := url.Values{}
@@ -227,7 +252,18 @@ func (u User) GetActivityMeasures(params *ActivityMeasuresQueryParam) (Activitie
 		activityMeasureResponse.Path = path
 	}
 
-	resp, err := httpClient.Get(path)
+	// resp, err := u.HTTPClient.Get(path)
+	// if err != nil {
+	// 	return activityMeasureResponse, err
+	// }
+
+	req, err := http.NewRequest("GET", path, nil)
+	req = req.WithContext(ctx)
+	if err != nil {
+		return activityMeasureResponse, fmt.Errorf("failed to build request: %s", err)
+	}
+
+	resp, err := u.HTTPClient.Do(req)
 	if err != nil {
 		return activityMeasureResponse, err
 	}
@@ -288,16 +324,22 @@ func (u User) GetActivityMeasures(params *ActivityMeasuresQueryParam) (Activitie
 	return activityMeasureResponse, nil
 }
 
-// GetWorkouts retrieves all the workouts for a given date range based on the values
-// provided by params.
+// GetWorkouts is the same as GetWorkoutsCTX but doesn't require a context to be provided.
 func (u User) GetWorkouts(params *WorkoutsQueryParam) (WorkoutResponse, error) {
+	ctx, cancel := u.Client.getContext()
+	defer cancel()
+	return u.GetWorkoutsCtx(ctx, params)
+}
+
+// GetWorkoutsCtx retrieves all the workouts for a given date range based on the values
+// provided by params.
+func (u User) GetWorkoutsCtx(ctx context.Context, params *WorkoutsQueryParam) (WorkoutResponse, error) {
 
 	workoutResponse := WorkoutResponse{}
 
-	httpClient := u.HTTPClient
-
 	v := url.Values{}
 	t, err := u.Token.Token()
+	fmt.Printf("%v, %s, %s", t.Valid(), t.AccessToken, t.RefreshToken)
 	if err != nil {
 		return workoutResponse, fmt.Errorf("failed to obtain token: %s", err)
 	}
@@ -318,9 +360,19 @@ func (u User) GetWorkouts(params *WorkoutsQueryParam) (WorkoutResponse, error) {
 		workoutResponse.Path = path
 	}
 
-	resp, err := httpClient.Get(path)
+	// resp, err := u.HTTPClient.Get(path)
+	// if err != nil {
+	// 	return workoutResponse, nil
+	// }
+	req, err := http.NewRequest("GET", path, nil)
+	req = req.WithContext(ctx)
 	if err != nil {
-		return workoutResponse, nil
+		return workoutResponse, fmt.Errorf("failed to build request: %s", err)
+	}
+
+	resp, err := u.HTTPClient.Do(req)
+	if err != nil {
+		return workoutResponse, err
 	}
 
 	defer resp.Body.Close()
@@ -366,9 +418,16 @@ func (u User) GetWorkouts(params *WorkoutsQueryParam) (WorkoutResponse, error) {
 
 }
 
-// GetBodyMeasures retrieves the body measurements as specified by the config
-// provided.
+// GetBodyMeasures is the same as GetBodyMeasuresCtx but doesn't require a context to be provided.
 func (u User) GetBodyMeasures(params *BodyMeasuresQueryParams) (BodyMeasuresResp, error) {
+	ctx, cancel := u.Client.getContext()
+	defer cancel()
+	return u.GetBodyMeasuresCtx(ctx, params)
+}
+
+// GetBodyMeasuresCtx retrieves the body measurements as specified by the config
+// provided.
+func (u User) GetBodyMeasuresCtx(ctx context.Context, params *BodyMeasuresQueryParams) (BodyMeasuresResp, error) {
 	bodyMeasureResponse := BodyMeasuresResp{}
 
 	// Build query params
@@ -412,7 +471,17 @@ func (u User) GetBodyMeasures(params *BodyMeasuresQueryParams) (BodyMeasuresResp
 		bodyMeasureResponse.Path = path
 	}
 
-	resp, err := u.HTTPClient.Get(path)
+	// resp, err := u.HTTPClient.Get(path)
+	// if err != nil {
+	// 	return bodyMeasureResponse, err
+	// }
+	req, err := http.NewRequest("GET", path, nil)
+	req = req.WithContext(ctx)
+	if err != nil {
+		return bodyMeasureResponse, fmt.Errorf("failed to build request: %s", err)
+	}
+
+	resp, err := u.HTTPClient.Do(req)
 	if err != nil {
 		return bodyMeasureResponse, err
 	}
@@ -439,13 +508,18 @@ func (u User) GetBodyMeasures(params *BodyMeasuresQueryParams) (BodyMeasuresResp
 
 }
 
-// GetSleepMeasures retrieves the sleep measurements as specified by the config
+// GetSleepMeasures is the same as GetSleepMeasuresCtx but doesn't require a context to be provided.
+func (u User) GetSleepMeasures(params *SleepMeasuresQueryParam) (SleepMeasuresResp, error) {
+	ctx, cancel := u.Client.getContext()
+	defer cancel()
+	return u.GetSleepMeasuresCtx(ctx, params)
+}
+
+// GetSleepMeasuresCtx retrieves the sleep measurements as specified by the config
 // provided. Start and end dates are requires so if the param is not provided
 // one is generated for the past 24 hour timeframe.
-func (u User) GetSleepMeasures(params *SleepMeasuresQueryParam) (SleepMeasuresResp, error) {
+func (u User) GetSleepMeasuresCtx(ctx context.Context, params *SleepMeasuresQueryParam) (SleepMeasuresResp, error) {
 	sleepMeasureRepsonse := SleepMeasuresResp{}
-
-	httpClient := u.HTTPClient
 
 	// Build query params
 	v := url.Values{}
@@ -472,7 +546,17 @@ func (u User) GetSleepMeasures(params *SleepMeasuresQueryParam) (SleepMeasuresRe
 		sleepMeasureRepsonse.Path = path
 	}
 
-	resp, err := httpClient.Get(path)
+	// resp, err := u.HTTPClient.Get(path)
+	// if err != nil {
+	// 	return sleepMeasureRepsonse, err
+	// }
+	req, err := http.NewRequest("GET", path, nil)
+	req = req.WithContext(ctx)
+	if err != nil {
+		return sleepMeasureRepsonse, fmt.Errorf("failed to build request: %s", err)
+	}
+
+	resp, err := u.HTTPClient.Do(req)
 	if err != nil {
 		return sleepMeasureRepsonse, err
 	}
@@ -505,12 +589,17 @@ func (u User) GetSleepMeasures(params *SleepMeasuresQueryParam) (SleepMeasuresRe
 	return sleepMeasureRepsonse, nil
 }
 
-// GetSleepSummary retrieves the sleep summary information provided. A SleepSummaryQueryParam is
-// required as a timeframe is needed by the API. If null is provided the last 24 hours will be used.
+// GetSleepSummary is the same as GetSleepSummaryCtx but doesn't require a context to be provided.
 func (u User) GetSleepSummary(params *SleepSummaryQueryParam) (SleepSummaryResp, error) {
-	sleepSummaryResponse := SleepSummaryResp{}
+	ctx, cancel := u.Client.getContext()
+	defer cancel()
+	return u.GetSleepSummaryCtx(ctx, params)
+}
 
-	httpClient := u.HTTPClient
+// GetSleepSummaryCtx retrieves the sleep summary information provided. A SleepSummaryQueryParam is
+// required as a timeframe is needed by the API. If null is provided the last 24 hours will be used.
+func (u User) GetSleepSummaryCtx(ctx context.Context, params *SleepSummaryQueryParam) (SleepSummaryResp, error) {
+	sleepSummaryResponse := SleepSummaryResp{}
 
 	// Build query params
 	v := url.Values{}
@@ -540,7 +629,17 @@ func (u User) GetSleepSummary(params *SleepSummaryQueryParam) (SleepSummaryResp,
 		sleepSummaryResponse.Path = path
 	}
 
-	resp, err := httpClient.Get(path)
+	// resp, err := u.HTTPClient.Get(path)
+	// if err != nil {
+	// 	return sleepSummaryResponse, err
+	// }
+	req, err := http.NewRequest("GET", path, nil)
+	req = req.WithContext(ctx)
+	if err != nil {
+		return sleepSummaryResponse, fmt.Errorf("failed to build request: %s", err)
+	}
+
+	resp, err := u.HTTPClient.Do(req)
 	if err != nil {
 		return sleepSummaryResponse, err
 	}
@@ -561,7 +660,7 @@ func (u User) GetSleepSummary(params *SleepSummaryQueryParam) (SleepSummaryResp,
 
 	// Parse all the date fields.
 	if sleepSummaryResponse.Body != nil {
-		for i, _ := range sleepSummaryResponse.Body.Series {
+		for i := range sleepSummaryResponse.Body.Series {
 
 			// Parse the normal UNIX time stamps.
 			startDate := time.Unix(sleepSummaryResponse.Body.Series[i].StartDate, 0)
@@ -589,11 +688,16 @@ func (u User) GetSleepSummary(params *SleepSummaryQueryParam) (SleepSummaryResp,
 
 }
 
-// CreateNotification creates a new notification.
+// CreateNotification is the same as CreateNotificationCtx but doesn't require a context to be provided.
 func (u User) CreateNotification(params *CreateNotificationParam) (CreateNotificationResp, error) {
-	createNotificationResponse := CreateNotificationResp{}
+	ctx, cancel := u.Client.getContext()
+	defer cancel()
+	return u.CreateNotificationCtx(ctx, params)
+}
 
-	httpClient := u.HTTPClient
+// CreateNotificationCtx creates a new notification.
+func (u User) CreateNotificationCtx(ctx context.Context, params *CreateNotificationParam) (CreateNotificationResp, error) {
+	createNotificationResponse := CreateNotificationResp{}
 
 	// Build a params if nil as it is required.
 	if params == nil {
@@ -618,7 +722,17 @@ func (u User) CreateNotification(params *CreateNotificationParam) (CreateNotific
 		createNotificationResponse.Path = path
 	}
 
-	resp, err := httpClient.Get(path)
+	// resp, err := u.HTTPClient.Get(path)
+	// if err != nil {
+	// 	return createNotificationResponse, err
+	// }
+	req, err := http.NewRequest("GET", path, nil)
+	req = req.WithContext(ctx)
+	if err != nil {
+		return createNotificationResponse, fmt.Errorf("failed to build request: %s", err)
+	}
+
+	resp, err := u.HTTPClient.Do(req)
 	if err != nil {
 		return createNotificationResponse, err
 	}
@@ -640,11 +754,16 @@ func (u User) CreateNotification(params *CreateNotificationParam) (CreateNotific
 	return createNotificationResponse, nil
 }
 
-// ListNotifications lists all the notifications found for the user.
+// ListNotifications is the same as ListNotificationsCtx but doesn't require a context to be provided.
 func (u User) ListNotifications(params *ListNotificationsParam) (ListNotificationsResp, error) {
-	listNotificationResponse := ListNotificationsResp{}
+	ctx, cancel := u.Client.getContext()
+	defer cancel()
+	return u.ListNotificationsCtx(ctx, params)
+}
 
-	httpClient := u.HTTPClient
+// ListNotifications lists all the notifications found for the user.
+func (u User) ListNotificationsCtx(ctx context.Context, params *ListNotificationsParam) (ListNotificationsResp, error) {
+	listNotificationResponse := ListNotificationsResp{}
 
 	// Build query params.
 	v := url.Values{}
@@ -666,7 +785,17 @@ func (u User) ListNotifications(params *ListNotificationsParam) (ListNotificatio
 		listNotificationResponse.Path = path
 	}
 
-	resp, err := httpClient.Get(path)
+	// resp, err := u.HTTPClient.Get(path)
+	// if err != nil {
+	// 	return listNotificationResponse, err
+	// }
+	req, err := http.NewRequest("GET", path, nil)
+	req = req.WithContext(ctx)
+	if err != nil {
+		return listNotificationResponse, fmt.Errorf("failed to build request: %s", err)
+	}
+
+	resp, err := u.HTTPClient.Do(req)
 	if err != nil {
 		return listNotificationResponse, err
 	}
@@ -696,11 +825,16 @@ func (u User) ListNotifications(params *ListNotificationsParam) (ListNotificatio
 	return listNotificationResponse, nil
 }
 
-// GetNotificationInformation lists all the notifications found for the user.
+// GetNotificationInformation is the same as GetNotificationInformationCtx but doesn't require a context to be provided.
 func (u User) GetNotificationInformation(params *NotificationInfoParam) (NotificationInfoResp, error) {
-	notificationInfoResponse := NotificationInfoResp{}
+	ctx, cancel := u.Client.getContext()
+	defer cancel()
+	return u.GetNotificationInformationCtx(ctx, params)
+}
 
-	httpClient := u.HTTPClient
+// GetNotificationInformationCtx lists all the notifications found for the user.
+func (u User) GetNotificationInformationCtx(ctx context.Context, params *NotificationInfoParam) (NotificationInfoResp, error) {
+	notificationInfoResponse := NotificationInfoResp{}
 
 	// Build query params.
 	v := url.Values{}
@@ -723,7 +857,17 @@ func (u User) GetNotificationInformation(params *NotificationInfoParam) (Notific
 		notificationInfoResponse.Path = path
 	}
 
-	resp, err := httpClient.Get(path)
+	// resp, err := u.HTTPClient.Get(path)
+	// if err != nil {
+	// 	return notificationInfoResponse, err
+	// }
+	req, err := http.NewRequest("GET", path, nil)
+	req = req.WithContext(ctx)
+	if err != nil {
+		return notificationInfoResponse, fmt.Errorf("failed to build request: %s", err)
+	}
+
+	resp, err := u.HTTPClient.Do(req)
 	if err != nil {
 		return notificationInfoResponse, err
 	}
@@ -752,11 +896,16 @@ func (u User) GetNotificationInformation(params *NotificationInfoParam) (Notific
 	return notificationInfoResponse, nil
 }
 
-// RevokeNotification revokes a notification so it no longer sends.
+// RevokeNotification is the same as RevokeNotificationCtx but doesn't require a context to be provided.
 func (u User) RevokeNotification(params *RevokeNotificationParam) (RevokeNotificationResp, error) {
-	revokeResponse := RevokeNotificationResp{}
+	ctx, cancel := u.Client.getContext()
+	defer cancel()
+	return u.RevokeNotificationCtx(ctx, params)
+}
 
-	httpClient := u.HTTPClient
+// RevokeNotificationCtx revokes a notification so it no longer sends.
+func (u User) RevokeNotificationCtx(ctx context.Context, params *RevokeNotificationParam) (RevokeNotificationResp, error) {
+	revokeResponse := RevokeNotificationResp{}
 
 	// Build query params.
 	v := url.Values{}
@@ -779,7 +928,17 @@ func (u User) RevokeNotification(params *RevokeNotificationParam) (RevokeNotific
 		revokeResponse.Path = path
 	}
 
-	resp, err := httpClient.Get(path)
+	// resp, err := u.HTTPClient.Get(path)
+	// if err != nil {
+	// 	return revokeResponse, err
+	// }
+	req, err := http.NewRequest("GET", path, nil)
+	req = req.WithContext(ctx)
+	if err != nil {
+		return revokeResponse, fmt.Errorf("failed to build request: %s", err)
+	}
+
+	resp, err := u.HTTPClient.Do(req)
 	if err != nil {
 		return revokeResponse, err
 	}
