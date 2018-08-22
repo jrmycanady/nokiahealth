@@ -1,5 +1,5 @@
 
-<center><img style="float:right" src="./nh_logo_small.png"/></center>
+<img align="right" src="./nh_logo_small.png"/>
 
 # Go client for the Nokia Health API
 
