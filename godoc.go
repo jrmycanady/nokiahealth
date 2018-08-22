@@ -1,114 +1,76 @@
-// Package nokiahealth is a client library for for working with the Nokia
-// Health (Withings) API. It includes support for all resources listed on the public
-// api documentation at https://developer.health.nokia.com/api/doc. This
-// includes everything from user access token generation to retrieving
-// body measurements and setting up notifications.
-//
-// Due to limited access of Nokia Health devices, testing of each
-// resource has been limited. If you have access to more data or run into
-// any bugs/missing features, please place an issue on github at
-// https://github.com/jrmycanady/nokiahealth. The API documentation has been
-// found to be severly lacking or completely incorrect so oddities are
-// expected to be found. Most are easily fixed as long as the raw request data
-// can be provided.
-//
-// Oauth Notes
-//
-// The Nokia Health Oauth implementation required modifications to the
-// Oauth package. As such this package relies upon a fork of dghubble/oauth1
-// located at jrmycanady/oauth1.
-//
-// Supported Resources
-//
-//  Generate User Access Request and URL
-//  Get Activity Measures
-//  Get Body Measures
-//  Get Intraday Activity (Requires additional approval by Nokia Health)
-//  Get Sleep Measures
-//  Get Sleep Summary
-//  Get Workouts
-//  Create Notification
-//  Get Notification Information
-//  List Notifications
-//  Revoke Notification
-//
-// Basic Usage
-//
-// The basic use pattern for this client is to instantiate the client using
-// the developer Oath consumer key, consumer secret, and callback URL. The
-// callback URL can be an empty string if there is no need for generating
-// user authorization URLs.
-//   client := nokiahealth.NewClient("consumer_key","consumer_secret", "callback_url")
-// The client can be used to handle user authorization as well as generate
-// user structs from stores user authorization tokens. Details of that can be
-// found in the authorization section. The following is an example of creating
-// a user from known tokens and secrets. All three parameters are required as
-// the API doesn't rely on just the user_token to identify the user.
-//   user := client.GenerateUser("user_token", "user_secret", "user_id")
-// With the user defined API calls can be made by utilizing on of the methods
-// for the User struct. i.e.
-//   m, err := u.GetBodyMeasures(nil)
-// In the above example, m will contain the results of the request. All methods
-// support an optional param that contains any specifics on the request such
-// as start date or end date. Refer to the Nokia Health documentation on when
-// and how to use these parameters. https://developer.health.nokia.com/api/doc.
-// Each param type is specific to the request type.
-//
-// Each method varies somewhat in the format it returns due to the inconsistencies
-// in the Nokia Health API. This package does what it can to work around
-// these inconsistencies but you should refer to the documentation for each
-// method for more information. The one commonality is that the package does
-// parse all dates into time.Time structs. The API returns a random assortment
-// of time formats. The raw data is always included but for each raw field there
-// should be a parsed counterpart.
-//
-// Authorization Overview
-//
-// Authorization is like most other Oauth1 based flows. You must first register
-// as a developer to obtain your consumer key and secret at
-//  https://developer.health.nokia.com/partner/dashboard. This will allow you
-// to make requests for authorization to access a users data.
-//
-// Next you must obtain authorization to access a users data via the API. This
-// is done by generating a specially crafted URL that the user must navigate to,
-// then authenticate and approve your access. Once approved, the user will either
-// be presented with a token, verifier, and user id or be redirected to the callback
-// URL specified. In either case, you need to obtain the user token, the verifier,
-// and the user's ID. NOTE: You will not yet have all the information needed
-// to access the user account. You will need to save the access request
-// token an secret until you get the information from the user. The verifier will
-// be used to generate the user secret that is needed for requests.
-//  // Generate an access request. (Assuming client is already created.)
-//  ar, err != client.CreateAccessRequest()
-//  if err != nil {
-//    log.Fatal(err)
-//  }
-//  // Somehow present the AuthorizationURL to the user to navigate to.
-//  // There is a 2 minute time window before this URL is no longer valid.
-//  fmt.Println(ar.AuthorizationURL)
-// The callback or user will have access to the verifier, userid, user token,
-// and user secret. From this you can generate a user which essentially
-// obtains the user secret and builds a normal user struct for the user.
-//  u, err != ar.GenerateUser("<verifier", <userid>)
-//  if err != nil {
-//	  log.Fatal(err)
-//  }
-// If all has gone well, you will now have a user struct to perform actions
-// against.
-//
-// In some cases, due to the application design, the callback may hit
-// a different process or the original access request struct is not available.
-// In such a case the generate user cannot be used which means you cannot
-// obtain the secret. In those cases you can rebuild an access request token
-// using the RebuildAccessRequest() method of the client. This still requires
-// storing the access request token and secret somewhere. Both of which are
-// public fields on the AccessRequest struct.
-//  ar := client.RebuildAccessRequest("token", "secret")
-//
-// Debug / Testing Client Options
-//
-// The client includes a couple options to help with possible debugging or testing.
-// These include the SaveRawResponse and IncludePath fields. If either are set
-// to true, the returned responses from user methods will include the path and/or
-// the raw []byte response.
+/*
+Package nokiahealth is a client module for working with the Nokia Health (previously Withings) API. The current version (v2) of this module has been updated to work with the newer Oauth2 implementation of the API.
+
+Authorization Overview
+
+As with all Oauth2 APIs, you must obtain authorization to access the users data. To do so you must first register your application with the nokia health api to obtain a ClientID and ClientSecret.
+	http://developer.health.nokia.com/oauth2/#tag/introduction
+
+Once you have your client information you can now create a new client. You will need to also provide the redirectURL you provided during application registration. This URL is where the user will be redirected to and will include the code you need to generate the accessToken needed to access the users data. Under normal situations you should have an http server listening on that address and pull the code from the URL query parameters.
+	client := nokiahealth.NewClient(clientID, clientSecret, clientRedirectURL)
+
+You can now use the client to generate the authorization URL the user needs to navigate to. This URL will take the user to a page that will prompt them to allow your application to access their data. The state string returned by the method is a randomly generated BASE64 string using the crypto/rand module. It will be returned in the redirect as a query parameter and the two values verified they match. It's not required, but useful for security reasons.
+	authURL, state, err := client.AuthCodeURL()
+
+Using the code returned by the redirect in the query parameters, you can generate a new user. This user struct can be used to immediately perform actions against the users data. It also contains the token you should save somewhere for reuse. Obviously use whatever context you would like here.
+	u, err := client.NewUserFromAuthCode(context.Background(), code)
+
+Make sure the save at least the refreshToken for accessing the user data at a later date. You may also save the accessToken, but it does expire and creating a new client from saved token data only requires the refreshToken.
+	refreshToken, err := i := u.Token.Token().RefreshToken
+
+Creating User From Saved Token
+
+You can easily create a user from a saved token using the NewUserFromRefreshToken method. A working configured client is required for the user generated from this method to work.
+
+Requesting Data
+
+The user struct has various methods associated with each API endpoint to perform data retrieval. The methods take a specific param struct specifying the api options to use on the request. The API is a bit "special" so the params vary a bit between each method. The client does what it can to smooth those out but there is only so much that can be done.
+	startDate := time.Now().AddDate(0, 0, -2)
+	endDate := time.Now()
+
+	p := BodyMeasureQueryParams {
+		StartDate: &startDate,
+		EndDate: &endDate,
+	}
+	m, err := u.GetBodyMeasures(&p)
+
+
+Context Usage
+
+Every method has two forms, one that accepts a context and one that does now. This allows you to provide a context on each request if you would like to.
+	startDate := time.Now().AddDate(0, 0, -2)
+	endDate := time.Now()
+
+	p := BodyMeasureQueryParams {
+		StartDate: &startDate,
+		EndDate: &endDate,
+	}
+	m, err := u.GetBodyMeasures(&p)
+
+Request Timeout
+
+By default all methods utilize a context to timeout the request to the API. The value of the timeout is stored on the Client and can be access as/set on Client.Timeout. Setting is _not_ thread safe and should only be set on client creation. If you need to change the
+timeout for different requests use the methodCtx variant of the method.
+
+Oauth2 State Randomization
+
+By default the state generated by the AuthCodeURL utilized crypto/rand. If you would like to implement your own random method you can do so by assigning the function to Rand field of the Client struct. The function should support the Rand type. Also this is _not_ thread safe so only perform this action on client creation.
+
+Raw Request Data
+
+By default every returned response will be parsed and the parsed data returned. If you need access to the raw request data you can enable it by setting the SaveRawResponse field of the client struct to true. This should be done at client creation time. With it set to true the RawResponse field of the returned structs will include the raw response.
+
+Data Helper Methods
+
+Some data request methods include a parseResponse field on the params struct. If this is included additional parsing is performed to make the data more usable. This can be seen on GetBodyMeasures for example.
+
+Include Path Fields In Response
+
+You can include the path fields sent to the API by setting IncludePath to true on the client. This is primarily used for debugging but could be helpful in some situations.
+
+Oauth2 Scopes
+
+By default the client will request all known scopes. If you would like to pair down this you can change the scope by using the SetScope method of the client. Consts in the form of ScopeXxx are provided to aid selection.
+
+*/
 package nokiahealth
