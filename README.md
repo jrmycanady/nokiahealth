@@ -1,14 +1,14 @@
 # Go client for the Nokia Health API
 
-This is a go client that allows easy access to the Nokia Health API (https://developer.health.nokia.com/api/doc). More detailed documentation can be found in the godocs (https://godoc.org/github.com/jrmycanady/nokiahealth).
+This is a go client that allows easy access to the Nokia Health API and as of v2 supports the required Oauth2. More documentation regarding the Nokia Health API can be found [here](http://developer.health.nokia.com/oauth2/#tag/introduction). More detailed documentation of the client can be found in the [godocs]https://godoc.org/github.com/jrmycanady/nokiahealth.
 
 **NOTICE** - On November 30th the Nokia Health API is changing to Oauth 2.0 only. Work is almost complete on the new version and can be found in the v2 branch. The API has changed and Oauth2 is different than Oauth1 so the api has changed some. Should be completed soon.
 
-## OAuth Notes
+## v1 to v2 Changes
 
-The Nokia Health OAuth implemenation required some modifications resulting in a fork of dghubble/oauth1. This project relies on the fork located at jrmycanady/oauth1.
+Nokia changed the API to allow Oauth2 while removing Oauth1 as an option. Due to this change, the client API has changed when it comes to handling authentication and tokens. For the most part the changes make things easier but they are breaking changes. The good new is there is no longer a dependency on the forked Ouath1 implementation. 
 
-## Supported Resources (Currently all in the public API docs.)
+## Supported Resources
 * User Access Requests
 * Retrieving user body measurements
 * Retrieve activity measurements
@@ -24,52 +24,96 @@ The Nokia Health OAuth implemenation required some modifications resulting in a 
 ## Installation
   go get github.com/jrmycanady/nokiahealth
 
-## Basic Usage
+## Highlevel Usage Overview
+It's best if you read up on Oauth2 if you are not familure but the client should be simple enough to get working without understanding how Oauth2 works.
 
-All requests to the api for data requires a valid authenticated user token. You will first need to register as [Nokia Health developer](https://developer.health.nokia.com/partner/add).
+### New User
+* Create a [nokia account and register your app](https://account.health.nokia.com/partner/dashboard_oauth2).
+* Create a client and perform the tasks to get the token/user struct.
+    * Send user to Oauth2 authorization URL.
+    * Catch the redirect back via a server or manually pulling the "code" from the path.
+    * Generate a user.
+* Execute queries!
 
-Once that is complete, you will need to request a token for the user. If you are the user, you can perform this via the [api site](https://developer.health.nokia.com/api). On the other hand if you are develping an application for end users you will need to utilize the token request process detailed below.
+### Returning User
+* Create client (Assuming you have an account otherwise the user couldn't be returning...)
+* Generate user from stored token.
+* Execute queries!
 
-### User Authorization
+## Highlevel Usage Example
 
-OAuth 1.0 has a multi step request process to generate a token for the end user. Details around this can be found [here](https://developer.health.nokia.com/api) as well as general searching. A short example is show below but for further information see the [godcos](https://godoc.org/github.com/jrmycanady/nokiahealth)
+### New User
 
-1. Generate end-user authorization url and provide it to the end user to click on. This URL is encoded in such a way that Nokia knows the user is requesting to give your develper account access to theirs.
-
+**1. Obtain your ClientID and ClientSecret**
+**2. Create a new client**
 ```go
-client := nokiahealth.NewClient("<consumer_key>"," <consumer_secret>", "<callback_url>")
+clientID := "id"
+clientSecrete := "secret"
+clientRedirectURL := "url" // This is the URL nokia will redirect the client to 
+                           // after they authorized your application. This is
+                           // the same URL you provided when you registered your
+                           // application with Nokia. 
+                           // For any real world use you will need to have a
+                           // http server running and listening on that URL
+                           // so you can obtain the code that is returend.
+                           // For simple testing you can just manually navigate
+                           // to the URL that will be generated and copy the
+                           // code.
 
-ar, err := client.CreateAccessRequest()
+client := nokiahealth.NewClient(clientID, clientSecret, clientRedirectURL)
+```
+**3. Generate the authorization URL.**
+```go
+authURL, _, err := client.AuthCodeURL() // Ignoring the state in this example
+                                        // but in realworld use you will want
+                                        // to record this to compare to the
+                                        // state value returned by the redirect
+                                        // from nokia to verify its a redirect
+                                        // from your request. 
+                                        // The stat is auto generated for you
+                                        // using cyrto/rand but the random
+                                        // generation can be replaced with your
+                                        // own function if you would like.
+```
+**4. User navigates to URL and the code and state are retrieved.**
+**5. Create new user using returned code.**
+```go
+u, err := client.NewUserFromAuthCode(context.Background(), code) // Obviously
+                                        // use whatever context you would like
+                                        // here.
 if err != nil {
-    log.Fatal(err)
-}
-
-fmt.Println(ar.AuthorizationURL)
-```
-2. If you provided a callback URL nokia will then redirect them to that URL with query parameters set containing the verifier string and userid. Otherwise if it's empty the user will see it on screen and would need to copy and paste it into your app. Once you have those two bits of info, it's time to get the token.
-```go
-u, err := ar.GenerateUser("<verifier>", <userid>)
-if err != nil {
-    log.Fatal(err)
+    panic(err) // Handle the error however is appropriate for your code.
 }
 ```
-3. If all has gone well you now have a user object you may use to query. Methods off the user object include things like GetBodyMeasure()
-4. Save the UserID, AccessTokenStr and AccessSecretStr for later requests.
+**6. DONE - you now have a user that can make data requests.
 
-### User Requests
+### Returning User
 
-Users requests require a valid User struct. This can be obtained via the token request process as above but more likely via directly creating a User as seen below.
-
+**1. Create a new client**
 ```go
-client := nokiahealth.NewClient("<consumer_key>"," <consumer_secret>", "<callback_url>")
+clientID := "id"
+clientSecrete := "secret"
+clientRedirectURL := "url" // This is the URL nokia will redirect the client to 
+                           // after they authorized your application. This is
+                           // the same URL you provided when you registered your
+                           // application with Nokia. 
+                           // For any real world use you will need to have a
+                           // http server running and listening on that URL
+                           // so you can obtain the code that is returend.
+                           // For simple testing you can just manually navigate
+                           // to the URL that will be generated and copy the
+                           // code.
 
-u := client.GenerateUser("<token>", "<secret>", "<userID>")
+client := nokiahealth.NewClient(clientID, clientSecret, clientRedirectURL)
 ```
-
-Now that the user is defined api calls can be made for the user.
+**2. Generate a new user from the stored tokens.**
 ```go
-m, err := u.GetBodyMeasures(nil)
+// This creates a new user based on the tokens provided. Technically the 
+// accessToken can be gibberish and the refresh Token is the one that is really
+// required.
+u, err := client.NewUserFromRefreshToken(context.Background(), accessToken, refreshToken)
 ```
+**6. DONE - you now have a user that can make data requests.
 
 
 ## Making Requests
@@ -87,4 +131,17 @@ In most cases the response will contain all the information you need. Some metho
 
 ```go
 measures := m.ParseData()
+```
+
+## Making context Requests
+Every request method has a partner method ending with Ctx that takes a context
+that will be used for the HTTP call. This allows you to provide a custom context
+if you desire.
+```go
+p := nokiahealth.BodyMeasuresQueryParams{}
+
+t := time.Now().AddDate(0, 0, -14)
+p.StartDate = &t
+
+m, err := u.GetBodyMeasuresCtx(context.Background(), &p)
 ```
