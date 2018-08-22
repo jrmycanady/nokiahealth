@@ -1,6 +1,6 @@
 # Go client for the Nokia Health API
 
-This is a go client that allows easy access to the Nokia Health API and as of v2 supports the required Oauth2. More documentation regarding the Nokia Health API can be found [here](http://developer.health.nokia.com/oauth2/#tag/introduction). More detailed documentation of the client can be found in the [godocs]https://godoc.org/github.com/jrmycanady/nokiahealth.
+This is a go client that allows easy access to the Nokia Health API and as of v2 supports the required Oauth2. More documentation regarding the Nokia Health API can be found [here](http://developer.health.nokia.com/oauth2/#tag/introduction). More detailed documentation of the client can be found in the [godocs](https://godoc.org/github.com/jrmycanady/nokiahealth).
 
 **NOTICE** - On November 30th the Nokia Health API is changing to Oauth 2.0 only. Work is almost complete on the new version and can be found in the v2 branch. The API has changed and Oauth2 is different than Oauth1 so the api has changed some. Should be completed soon.
 
@@ -13,19 +13,19 @@ Nokia changed the API to allow Oauth2 while removing Oauth1 as an option. Due to
 * Retrieving user body measurements
 * Retrieve activity measurements
 * Retrieve workouts
-* Retreive intraday activities - Apparently requires additional authorization which I don't have yet so no testing.
+* Retrieve intraday activities - Apparently requires additional authorization which I don't have yet so no testing.
 * Retrieve sleep measures - Limited testing so report any issues.
 * Retrieve sleep summary - Limited testing so report any issues.
 * Creating a notification
-* Retreiving a single notification
-* Retreiving all notifications for a user
+* Retrieving a single notification
+* Retrieving all notifications for a user
 * Revoke notifications
 
 ## Installation
   go get github.com/jrmycanady/nokiahealth
 
 ## Highlevel Usage Overview
-It's best if you read up on Oauth2 if you are not familure but the client should be simple enough to get working without understanding how Oauth2 works.
+It's best if you read up on Oauth2 if you are not familiar but the client should be simple enough to get working without understanding how Oauth2 works.
 
 ### New User
 * Create a [nokia account and register your app](https://account.health.nokia.com/partner/dashboard_oauth2).
@@ -55,7 +55,7 @@ clientRedirectURL := "url" // This is the URL nokia will redirect the client to
                            // application with Nokia. 
                            // For any real world use you will need to have a
                            // http server running and listening on that URL
-                           // so you can obtain the code that is returend.
+                           // so you can obtain the code that is retruned.
                            // For simple testing you can just manually navigate
                            // to the URL that will be generated and copy the
                            // code.
@@ -85,7 +85,7 @@ if err != nil {
     panic(err) // Handle the error however is appropriate for your code.
 }
 ```
-**6. DONE - you now have a user that can make data requests.
+**6. DONE - you now have a user that can make data requests.**
 
 ### Returning User
 
@@ -99,7 +99,7 @@ clientRedirectURL := "url" // This is the URL nokia will redirect the client to
                            // application with Nokia. 
                            // For any real world use you will need to have a
                            // http server running and listening on that URL
-                           // so you can obtain the code that is returend.
+                           // so you can obtain the code that is returned.
                            // For simple testing you can just manually navigate
                            // to the URL that will be generated and copy the
                            // code.
@@ -113,7 +113,7 @@ client := nokiahealth.NewClient(clientID, clientSecret, clientRedirectURL)
 // required.
 u, err := client.NewUserFromRefreshToken(context.Background(), accessToken, refreshToken)
 ```
-**6. DONE - you now have a user that can make data requests.
+**3. DONE - you now have a user that can make data requests.**
 
 
 ## Making Requests

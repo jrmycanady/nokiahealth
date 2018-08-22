@@ -360,6 +360,9 @@ func (u User) GetWorkoutsCtx(ctx context.Context, params *WorkoutsQueryParam) (W
 	// Building query params
 	v := url.Values{}
 	t, err := u.Token.Token()
+	if err != nil {
+		return workoutResponse, fmt.Errorf("failed to obtain token: %s", err)
+	}
 	fmt.Printf("%v, %s, %s", t.Valid(), t.AccessToken, t.RefreshToken)
 	if err != nil {
 		return workoutResponse, fmt.Errorf("failed to obtain token: %s", err)
