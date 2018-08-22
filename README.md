@@ -1,3 +1,6 @@
+
+<center><img style="float:right" src="./nh_logo_small.png"/></center>
+
 # Go client for the Nokia Health API
 
 This is a go client that allows easy access to the Nokia Health API and as of v2 supports the required Oauth2. More documentation regarding the Nokia Health API can be found [here](http://developer.health.nokia.com/oauth2/#tag/introduction). More detailed documentation of the client can be found in the [godocs](https://godoc.org/github.com/jrmycanady/nokiahealth).
