@@ -2,8 +2,6 @@
 
 This is a go client that allows easy access to the Nokia Health API and as of v2 supports the required Oauth2. More documentation regarding the Nokia Health API can be found [here](http://developer.health.nokia.com/oauth2/#tag/introduction). More detailed documentation of the client can be found in the [godocs](https://godoc.org/github.com/jrmycanady/nokiahealth).
 
-**NOTICE** - On November 30th the Nokia Health API is changing to Oauth 2.0 only. Work is almost complete on the new version and can be found in the v2 branch. The API has changed and Oauth2 is different than Oauth1 so the api has changed some. Should be completed soon.
-
 ## v1 to v2 Changes
 
 Nokia changed the API to allow Oauth2 while removing Oauth1 as an option. Due to this change, the client API has changed when it comes to handling authentication and tokens. For the most part the changes make things easier but they are breaking changes. The good new is there is no longer a dependency on the forked Ouath1 implementation. 
