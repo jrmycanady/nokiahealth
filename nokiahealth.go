@@ -135,7 +135,12 @@ func (c *Client) NewUserFromAuthCode(ctx context.Context, code string) (*User, e
 		return nil, fmt.Errorf("failed to obtain token: %s", err)
 	}
 
-	return &User{Token: c.OAuth2Config.TokenSource(ctx, t), Client: c, HTTPClient: c.OAuth2Config.Client(ctx, t)}, nil
+	return &User{
+		Token:      c.OAuth2Config.TokenSource(ctx, t),
+		Client:     c,
+		HTTPClient: c.OAuth2Config.Client(ctx, t),
+		// HTTPClient: &http.Client{},
+	}, nil
 }
 
 // NewUserFromRefreshToken generates a new user that the refresh token is for.
@@ -152,13 +157,14 @@ func (c *Client) NewUserFromRefreshToken(ctx context.Context, accessToken string
 		Client:     c,
 		Token:      c.OAuth2Config.TokenSource(ctx, &t),
 		HTTPClient: c.OAuth2Config.Client(ctx, &t),
+		// HTTPClient: &http.Client{},
 	}
 
 	return &u, nil
 }
 
 // GetIntradayActivity is the same as GetIntraDayActivityCtx but doesn't require a context to be provided.
-func (u User) GetIntradayActivity(params *IntradayActivityQueryParam) (IntradayActivityResp, error) {
+func (u *User) GetIntradayActivity(params *IntradayActivityQueryParam) (IntradayActivityResp, error) {
 	ctx, cancel := u.Client.getContext()
 	defer cancel()
 	return u.GetIntradayActivityCtx(ctx, params)
@@ -166,7 +172,7 @@ func (u User) GetIntradayActivity(params *IntradayActivityQueryParam) (IntradayA
 
 // GetIntradayActivityCtx retreieves intraday activites from the API. Special permissions provided by
 // Nokia Health are required to use this resource.
-func (u User) GetIntradayActivityCtx(ctx context.Context, params *IntradayActivityQueryParam) (IntradayActivityResp, error) {
+func (u *User) GetIntradayActivityCtx(ctx context.Context, params *IntradayActivityQueryParam) (IntradayActivityResp, error) {
 	intraDayActivityResponse := IntradayActivityResp{}
 
 	// Building query params
@@ -226,7 +232,7 @@ func (u User) GetIntradayActivityCtx(ctx context.Context, params *IntradayActivi
 }
 
 // GetActivityMeasures is the same as GetActivityMeasuresCtx but doesn't require a context to be provided.
-func (u User) GetActivityMeasures(params *ActivityMeasuresQueryParam) (ActivitiesMeasuresResp, error) {
+func (u *User) GetActivityMeasures(params *ActivityMeasuresQueryParam) (ActivitiesMeasuresResp, error) {
 	ctx, cancel := u.Client.getContext()
 	defer cancel()
 	return u.GetActivityMeasuresCtx(ctx, params)
@@ -235,7 +241,7 @@ func (u User) GetActivityMeasures(params *ActivityMeasuresQueryParam) (Activitie
 // GetActivityMeasuresCtx retrieves the activity measurements as specified by the config
 // provided. If the start time is missing the current time minus one day will be used.
 // If the end time is missing the current day will be used.
-func (u User) GetActivityMeasuresCtx(ctx context.Context, params *ActivityMeasuresQueryParam) (ActivitiesMeasuresResp, error) {
+func (u *User) GetActivityMeasuresCtx(ctx context.Context, params *ActivityMeasuresQueryParam) (ActivitiesMeasuresResp, error) {
 	activityMeasureResponse := ActivitiesMeasuresResp{}
 
 	// Building the query params
@@ -345,7 +351,7 @@ func (u User) GetActivityMeasuresCtx(ctx context.Context, params *ActivityMeasur
 }
 
 // GetWorkouts is the same as GetWorkoutsCTX but doesn't require a context to be provided.
-func (u User) GetWorkouts(params *WorkoutsQueryParam) (WorkoutResponse, error) {
+func (u *User) GetWorkouts(params *WorkoutsQueryParam) (WorkoutResponse, error) {
 	ctx, cancel := u.Client.getContext()
 	defer cancel()
 	return u.GetWorkoutsCtx(ctx, params)
@@ -353,7 +359,7 @@ func (u User) GetWorkouts(params *WorkoutsQueryParam) (WorkoutResponse, error) {
 
 // GetWorkoutsCtx retrieves all the workouts for a given date range based on the values
 // provided by params.
-func (u User) GetWorkoutsCtx(ctx context.Context, params *WorkoutsQueryParam) (WorkoutResponse, error) {
+func (u *User) GetWorkoutsCtx(ctx context.Context, params *WorkoutsQueryParam) (WorkoutResponse, error) {
 
 	workoutResponse := WorkoutResponse{}
 
@@ -444,7 +450,7 @@ func (u User) GetWorkoutsCtx(ctx context.Context, params *WorkoutsQueryParam) (W
 }
 
 // GetBodyMeasures is the same as GetBodyMeasuresCtx but doesn't require a context to be provided.
-func (u User) GetBodyMeasures(params *BodyMeasuresQueryParams) (BodyMeasuresResp, error) {
+func (u *User) GetBodyMeasures(params *BodyMeasuresQueryParams) (BodyMeasuresResp, error) {
 	ctx, cancel := u.Client.getContext()
 	defer cancel()
 	return u.GetBodyMeasuresCtx(ctx, params)
@@ -452,7 +458,7 @@ func (u User) GetBodyMeasures(params *BodyMeasuresQueryParams) (BodyMeasuresResp
 
 // GetBodyMeasuresCtx retrieves the body measurements as specified by the config
 // provided.
-func (u User) GetBodyMeasuresCtx(ctx context.Context, params *BodyMeasuresQueryParams) (BodyMeasuresResp, error) {
+func (u *User) GetBodyMeasuresCtx(ctx context.Context, params *BodyMeasuresQueryParams) (BodyMeasuresResp, error) {
 	bodyMeasureResponse := BodyMeasuresResp{}
 
 	// Building query params
@@ -535,7 +541,7 @@ func (u User) GetBodyMeasuresCtx(ctx context.Context, params *BodyMeasuresQueryP
 }
 
 // GetSleepMeasures is the same as GetSleepMeasuresCtx but doesn't require a context to be provided.
-func (u User) GetSleepMeasures(params *SleepMeasuresQueryParam) (SleepMeasuresResp, error) {
+func (u *User) GetSleepMeasures(params *SleepMeasuresQueryParam) (SleepMeasuresResp, error) {
 	ctx, cancel := u.Client.getContext()
 	defer cancel()
 	return u.GetSleepMeasuresCtx(ctx, params)
@@ -544,7 +550,7 @@ func (u User) GetSleepMeasures(params *SleepMeasuresQueryParam) (SleepMeasuresRe
 // GetSleepMeasuresCtx retrieves the sleep measurements as specified by the config
 // provided. Start and end dates are requires so if the param is not provided
 // one is generated for the past 24 hour timeframe.
-func (u User) GetSleepMeasuresCtx(ctx context.Context, params *SleepMeasuresQueryParam) (SleepMeasuresResp, error) {
+func (u *User) GetSleepMeasuresCtx(ctx context.Context, params *SleepMeasuresQueryParam) (SleepMeasuresResp, error) {
 	sleepMeasureRepsonse := SleepMeasuresResp{}
 
 	// Building query params
@@ -617,7 +623,7 @@ func (u User) GetSleepMeasuresCtx(ctx context.Context, params *SleepMeasuresQuer
 }
 
 // GetSleepSummary is the same as GetSleepSummaryCtx but doesn't require a context to be provided.
-func (u User) GetSleepSummary(params *SleepSummaryQueryParam) (SleepSummaryResp, error) {
+func (u *User) GetSleepSummary(params *SleepSummaryQueryParam) (SleepSummaryResp, error) {
 	ctx, cancel := u.Client.getContext()
 	defer cancel()
 	return u.GetSleepSummaryCtx(ctx, params)
@@ -625,7 +631,7 @@ func (u User) GetSleepSummary(params *SleepSummaryQueryParam) (SleepSummaryResp,
 
 // GetSleepSummaryCtx retrieves the sleep summary information provided. A SleepSummaryQueryParam is
 // required as a timeframe is needed by the API. If null is provided the last 24 hours will be used.
-func (u User) GetSleepSummaryCtx(ctx context.Context, params *SleepSummaryQueryParam) (SleepSummaryResp, error) {
+func (u *User) GetSleepSummaryCtx(ctx context.Context, params *SleepSummaryQueryParam) (SleepSummaryResp, error) {
 	sleepSummaryResponse := SleepSummaryResp{}
 
 	// Building query params
@@ -717,14 +723,14 @@ func (u User) GetSleepSummaryCtx(ctx context.Context, params *SleepSummaryQueryP
 }
 
 // CreateNotification is the same as CreateNotificationCtx but doesn't require a context to be provided.
-func (u User) CreateNotification(params *CreateNotificationParam) (CreateNotificationResp, error) {
+func (u *User) CreateNotification(params *CreateNotificationParam) (CreateNotificationResp, error) {
 	ctx, cancel := u.Client.getContext()
 	defer cancel()
 	return u.CreateNotificationCtx(ctx, params)
 }
 
 // CreateNotificationCtx creates a new notification.
-func (u User) CreateNotificationCtx(ctx context.Context, params *CreateNotificationParam) (CreateNotificationResp, error) {
+func (u *User) CreateNotificationCtx(ctx context.Context, params *CreateNotificationParam) (CreateNotificationResp, error) {
 	createNotificationResponse := CreateNotificationResp{}
 
 	// Build a params if nil as it is required.
@@ -784,14 +790,14 @@ func (u User) CreateNotificationCtx(ctx context.Context, params *CreateNotificat
 }
 
 // ListNotifications is the same as ListNotificationsCtx but doesn't require a context to be provided.
-func (u User) ListNotifications(params *ListNotificationsParam) (ListNotificationsResp, error) {
+func (u *User) ListNotifications(params *ListNotificationsParam) (ListNotificationsResp, error) {
 	ctx, cancel := u.Client.getContext()
 	defer cancel()
 	return u.ListNotificationsCtx(ctx, params)
 }
 
 // ListNotificationsCtx lists all the notifications found for the user.
-func (u User) ListNotificationsCtx(ctx context.Context, params *ListNotificationsParam) (ListNotificationsResp, error) {
+func (u *User) ListNotificationsCtx(ctx context.Context, params *ListNotificationsParam) (ListNotificationsResp, error) {
 	listNotificationResponse := ListNotificationsResp{}
 
 	// Building query params.
@@ -855,14 +861,14 @@ func (u User) ListNotificationsCtx(ctx context.Context, params *ListNotification
 }
 
 // GetNotificationInformation is the same as GetNotificationInformationCtx but doesn't require a context to be provided.
-func (u User) GetNotificationInformation(params *NotificationInfoParam) (NotificationInfoResp, error) {
+func (u *User) GetNotificationInformation(params *NotificationInfoParam) (NotificationInfoResp, error) {
 	ctx, cancel := u.Client.getContext()
 	defer cancel()
 	return u.GetNotificationInformationCtx(ctx, params)
 }
 
 // GetNotificationInformationCtx lists all the notifications found for the user.
-func (u User) GetNotificationInformationCtx(ctx context.Context, params *NotificationInfoParam) (NotificationInfoResp, error) {
+func (u *User) GetNotificationInformationCtx(ctx context.Context, params *NotificationInfoParam) (NotificationInfoResp, error) {
 	notificationInfoResponse := NotificationInfoResp{}
 
 	// Building query params.
@@ -927,14 +933,14 @@ func (u User) GetNotificationInformationCtx(ctx context.Context, params *Notific
 }
 
 // RevokeNotification is the same as RevokeNotificationCtx but doesn't require a context to be provided.
-func (u User) RevokeNotification(params *RevokeNotificationParam) (RevokeNotificationResp, error) {
+func (u *User) RevokeNotification(params *RevokeNotificationParam) (RevokeNotificationResp, error) {
 	ctx, cancel := u.Client.getContext()
 	defer cancel()
 	return u.RevokeNotificationCtx(ctx, params)
 }
 
 // RevokeNotificationCtx revokes a notification so it no longer sends.
-func (u User) RevokeNotificationCtx(ctx context.Context, params *RevokeNotificationParam) (RevokeNotificationResp, error) {
+func (u *User) RevokeNotificationCtx(ctx context.Context, params *RevokeNotificationParam) (RevokeNotificationResp, error) {
 	revokeResponse := RevokeNotificationResp{}
 
 	// Building query params.
