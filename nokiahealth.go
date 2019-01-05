@@ -121,9 +121,11 @@ func (c *Client) GenerateAccessToken(ctx context.Context, code string) (*oauth2.
 // User is a Nokia Health user account that can be interacted with via the
 // api.
 type User struct {
-	Client     *Client
-	Token      oauth2.TokenSource
-	HTTPClient *http.Client
+	Client               *Client
+	TokenSource          oauth2.TokenSource
+	HTTPClient           *http.Client
+	CurrentRefreshToken  string
+	refreshTokenReplaced bool
 }
 
 // NewUserFromAuthCode generates a new user by requesting the token using the
@@ -136,9 +138,10 @@ func (c *Client) NewUserFromAuthCode(ctx context.Context, code string) (*User, e
 	}
 
 	return &User{
-		Token:      c.OAuth2Config.TokenSource(ctx, t),
-		Client:     c,
-		HTTPClient: c.OAuth2Config.Client(ctx, t),
+		TokenSource:         c.OAuth2Config.TokenSource(ctx, t),
+		Client:              c,
+		HTTPClient:          c.OAuth2Config.Client(ctx, t),
+		CurrentRefreshToken: t.RefreshToken,
 		// HTTPClient: &http.Client{},
 	}, nil
 }
@@ -154,13 +157,35 @@ func (c *Client) NewUserFromRefreshToken(ctx context.Context, accessToken string
 	}
 
 	u := User{
-		Client:     c,
-		Token:      c.OAuth2Config.TokenSource(ctx, &t),
-		HTTPClient: c.OAuth2Config.Client(ctx, &t),
+		Client:              c,
+		TokenSource:         c.OAuth2Config.TokenSource(ctx, &t),
+		HTTPClient:          c.OAuth2Config.Client(ctx, &t),
+		CurrentRefreshToken: t.RefreshToken,
 		// HTTPClient: &http.Client{},
 	}
 
 	return &u, nil
+}
+
+// RefreshTokenReplaced returns true if the refresh token has been replaced.
+func (u *User) RefreshTokenReplaced() bool {
+	return u.refreshTokenReplaced
+}
+
+// Token returns the user token retrieving a new one via the refresh if expired. If a new one is provided
+// User.RefreshTokenReplaced() will return true noting the refresh token should be saved.
+func (u *User) Token() (*oauth2.Token, error) {
+	t, err := u.TokenSource.Token()
+	if err != nil {
+		return t, err
+	}
+
+	if t.RefreshToken != u.CurrentRefreshToken {
+		u.CurrentRefreshToken = t.RefreshToken
+		u.refreshTokenReplaced = true
+	}
+
+	return t, nil
 }
 
 // GetIntradayActivity is the same as GetIntraDayActivityCtx but doesn't require a context to be provided.
@@ -177,7 +202,7 @@ func (u *User) GetIntradayActivityCtx(ctx context.Context, params *IntradayActiv
 
 	// Building query params
 	v := url.Values{}
-	t, err := u.Token.Token()
+	t, err := u.Token()
 	if err != nil {
 		return intraDayActivityResponse, fmt.Errorf("failed to obtain token: %s", err)
 	}
@@ -247,7 +272,7 @@ func (u *User) GetActivityMeasuresCtx(ctx context.Context, params *ActivityMeasu
 	// Building the query params
 	v := url.Values{}
 
-	t, err := u.Token.Token()
+	t, err := u.Token()
 	if err != nil {
 		return activityMeasureResponse, fmt.Errorf("failed to obtain token: %s", err)
 	}
@@ -365,7 +390,7 @@ func (u *User) GetWorkoutsCtx(ctx context.Context, params *WorkoutsQueryParam) (
 
 	// Building query params
 	v := url.Values{}
-	t, err := u.Token.Token()
+	t, err := u.Token()
 	if err != nil {
 		return workoutResponse, fmt.Errorf("failed to obtain token: %s", err)
 	}
@@ -464,7 +489,7 @@ func (u *User) GetBodyMeasuresCtx(ctx context.Context, params *BodyMeasuresQuery
 	// Building query params
 	v := url.Values{}
 	v.Add("action", "getmeas")
-	t, err := u.Token.Token()
+	t, err := u.Token()
 	if err != nil {
 		return bodyMeasureResponse, fmt.Errorf("failed to obtain token: %s", err)
 	}
@@ -555,7 +580,7 @@ func (u *User) GetSleepMeasuresCtx(ctx context.Context, params *SleepMeasuresQue
 
 	// Building query params
 	v := url.Values{}
-	t, err := u.Token.Token()
+	t, err := u.Token()
 	if err != nil {
 		return sleepMeasureRepsonse, fmt.Errorf("failed to obtain token: %s", err)
 	}
@@ -636,7 +661,7 @@ func (u *User) GetSleepSummaryCtx(ctx context.Context, params *SleepSummaryQuery
 
 	// Building query params
 	v := url.Values{}
-	t, err := u.Token.Token()
+	t, err := u.Token()
 	if err != nil {
 		return sleepSummaryResponse, fmt.Errorf("failed to obtain token: %s", err)
 	}
@@ -740,7 +765,7 @@ func (u *User) CreateNotificationCtx(ctx context.Context, params *CreateNotifica
 
 	// Building query params.
 	v := url.Values{}
-	t, err := u.Token.Token()
+	t, err := u.Token()
 	if err != nil {
 		return createNotificationResponse, fmt.Errorf("failed to obtain token: %s", err)
 	}
@@ -802,7 +827,7 @@ func (u *User) ListNotificationsCtx(ctx context.Context, params *ListNotificatio
 
 	// Building query params.
 	v := url.Values{}
-	t, err := u.Token.Token()
+	t, err := u.Token()
 	if err != nil {
 		return listNotificationResponse, fmt.Errorf("failed to obtain token: %s", err)
 	}
@@ -873,7 +898,7 @@ func (u *User) GetNotificationInformationCtx(ctx context.Context, params *Notifi
 
 	// Building query params.
 	v := url.Values{}
-	t, err := u.Token.Token()
+	t, err := u.Token()
 	if err != nil {
 		return notificationInfoResponse, fmt.Errorf("failed to obtain token: %s", err)
 	}
@@ -945,7 +970,7 @@ func (u *User) RevokeNotificationCtx(ctx context.Context, params *RevokeNotifica
 
 	// Building query params.
 	v := url.Values{}
-	t, err := u.Token.Token()
+	t, err := u.Token()
 	if err != nil {
 		return revokeResponse, fmt.Errorf("failed to obtain token: %s", err)
 	}
